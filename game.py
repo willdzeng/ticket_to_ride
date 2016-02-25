@@ -1,5 +1,7 @@
 from copy import deepcopy
 
+import operator
+
 from board import create_board
 from cards import init_decks
 from classes import Colors, Hand, PlayerInfo
@@ -7,8 +9,11 @@ from methods import connected
 
 
 class FailureCause:
+    def __init__(self):
+        pass
+
     none, no_route, wrong_turn, missing_cards, incompatible_cards, already_drew, deck_empty, invalid_card_index, \
-    insufficient_cars = range(9)
+        insufficient_cars, game_over = range(10)
 
 
 class Game:
@@ -55,6 +60,8 @@ class Game:
         # Initialize edge claims
         self._edge_claims = {edge: None for edge in self._edges}
 
+        self._game_is_over = False
+
     def get_scoring(self):
         """
         :return: The scoring dictionary.
@@ -98,6 +105,18 @@ class Game:
         :return: True if it is this player's turn, false otherwise.
         """
         return player == self._players[self._current_player_index]
+
+    def is_game_over(self):
+        """
+        Determine if the game is over.
+
+        :return: A tuple with a boolean and a string.  The Boolean is True if the game is over, false otherwise.  The
+        String is the name of the winning player, or None otherwise.
+        """
+        if self._game_is_over:
+            return True, max(self._visible_scores.iteritems(), key=operator.itemgetter(1))[0]
+
+        return False, None
 
     def num_players(self):
         """
@@ -145,18 +164,6 @@ class Game:
 
         return True
 
-    def lose_cards(self, player, cards):
-        """
-        Remove cards from a player's hand.  If the cards aren't in the player's hand, then those cards aren't affected.
-
-        :param player: The player whose cards to remove.
-        :param cards: The cards to remove.
-        """
-        hand = self._player_info[player].hand
-
-        for card in cards:
-            hand.remove_card(card)
-
     def draw_face_up_card(self, player, card_index):
         """
         Have a player draw a card from the face up pile.
@@ -166,6 +173,10 @@ class Game:
         :return: A tuple containing a boolean and an int.  Boolean will be True if the action succeeded,
         False otherwise.  Integer will correspond to a failure cause in the FailureCause object.
         """
+        # Make sure the game is not over.
+        if self._game_is_over:
+            return False, FailureCause.game_over
+
         # Make sure it is the correct turn.
         if not self.is_turn(player):
             return False, FailureCause.wrong_turn
@@ -200,6 +211,10 @@ class Game:
         :return: A tuple containing a boolean and an int.  Boolean will be True if the action succeeded,
         False otherwise.  Integer will correspond to a failure cause in the FailureCause object.
         """
+        # Make sure the game is not over.
+        if self._game_is_over:
+            return False, FailureCause.game_over
+
         # Make sure it is the correct turn.
         if not self.is_turn(player):
             return False, FailureCause.wrong_turn
@@ -225,6 +240,10 @@ class Game:
         :return: A tuple containing a boolean and an int.  Boolean will be True if the action succeeded,
         False otherwise.  Integer will correspond to a failure cause in the FailureCause object.
         """
+        # Make sure the game is not over.
+        if self._game_is_over:
+            return False, FailureCause.game_over
+
         # Make sure it is the correct turn.
         if not self.is_turn(player):
             return False, FailureCause.wrong_turn
@@ -235,7 +254,7 @@ class Game:
 
         # Find the edge and claim it if possible.
         for edge in city1.edges:
-            if edge.contains_city(city2) and not self.edge_is_claimed(edge) and edge.color() == edge_color:
+            if edge.contains_city(city2) and not self._edge_is_claimed(edge) and edge.color() == edge_color:
                 # Player must have the given cards.
                 if not self.in_hand(player, cards):
                     return False, FailureCause.missing_cards
@@ -249,7 +268,7 @@ class Game:
                     return False, FailureCause.insufficient_cars
 
                 self._claim_edge(edge, player)
-                self.lose_cards(player, cards)
+                self._lose_cards(player, cards)
                 self._player_info[player].num_cars -= edge.cost()
 
                 # Update score.
@@ -257,12 +276,28 @@ class Game:
                 self._visible_scores[player.name] += self._scoring[edge.cost]
                 self._check_connections(player)
 
+                # Check if game is over.
+                if self._player_info[player].num_cars <= 3:
+                    self._end_game()
+
                 # End turn.
                 self._use_actions(2)
 
                 return True, FailureCause.none
 
         return False, FailureCause.no_route
+
+    def _lose_cards(self, player, cards):
+        """
+        Remove cards from a player's hand.  If the cards aren't in the player's hand, then those cards aren't affected.
+
+        :param player: The player whose cards to remove.
+        :param cards: The cards to remove.
+        """
+        hand = self._player_info[player].hand
+
+        for card in cards:
+            hand.remove_card(card)
 
     def _check_connections(self, player):
         """
@@ -286,7 +321,7 @@ class Game:
         """
         self._edge_claims[edge] = player.name
 
-    def edge_is_claimed(self, edge):
+    def _edge_is_claimed(self, edge):
         """
         Determines if an edge is claimed.
 
@@ -307,3 +342,12 @@ class Game:
         if self._num_actions_remaining <= 0:
             self._num_actions_remaining = 2
             self._current_player_index = (self._current_player_index + 1) % len(self._players)
+
+    def _end_game(self):
+        """
+        End the game.
+        """
+        self._game_is_over = True
+
+        # Update visible scores to final values.
+        self._visible_scores = {player.name: self._player_info[player].score for player in self._players}
