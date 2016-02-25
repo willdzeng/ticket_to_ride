@@ -13,7 +13,7 @@ class Game:
     starting_hand_size = 5
 
     def __init__(self, players):
-        self._cities, self._edges, self._deck, self._destinations, self._scoring = create_board()
+        self._city_edges, self._edges, self._deck, self._destinations, self._scoring = create_board()
 
         self._players = players
 
@@ -26,9 +26,7 @@ class Game:
             self._player_hands[player] = Hand([self._deck.pop() for x in range(self.starting_hand_size)])
 
         # Give each player a score of 0.
-        self._player_scores = {}
-        for player in players:
-            self._player_scores[player] = 0
+        self._player_scores = {player.name: 0 for player in self._players}
 
         # Give each player 3 destinations.
         self._player_destinations = {}
@@ -38,7 +36,7 @@ class Game:
 
             # Reduce score by all incomplete destinations.
             for dest in self._player_destinations[player]:
-                self._player_scores[player] -= dest.value()
+                self._player_scores[player.name] -= dest.value()
 
         # Select 5 face up cards.
         self._face_up_cards = [self._deck.pop() for x in range(5)]
@@ -46,11 +44,20 @@ class Game:
         # The number of actions the player has left to take this turn.
         self._num_actions_remaining = 2
 
+        # Initialize edge claims
+        self._edge_claims = {edge: None for edge in self._edges}
+
     def get_scoring(self):
         """
         :return: The scoring dictionary.
         """
-        return copy(self._scoring)
+        return dict(self._scoring)
+
+    def get_edge_claims(self):
+        """
+        :return: All edge claims.
+        """
+        return dict(self._edge_claims)
 
     def get_face_up_cards(self):
         """
@@ -74,22 +81,16 @@ class Game:
         :param player: The player.
         :return: The player's score.
         """
-        return self._player_scores[player]
+        return self._player_scores[player.name]
 
-    def get_opponent_scores(self, player):
+    def get_all_scores(self, player):
         """
-        See the scores of all opponents.
+        See the scores of all players.
 
         :param player: The player.
         :return: A dictionary of all opponents by name and their scores.
         """
-        result = {}
-
-        for player_key, score in self._player_scores:
-            if player != player_key:
-                result[str(player_key)] = score
-
-        return result
+        return dict(self._player_scores)
 
     def get_hand(self, player):
         """
@@ -200,6 +201,8 @@ class Game:
         # Complete action.
         self._use_actions(1 if card != Colors.none else 2)
 
+        return True, FailureCause.none
+
     def draw_from_deck(self, player):
         """
         Have a player draw a card from the deck.
@@ -217,6 +220,8 @@ class Game:
         hand.add_card(self._deck.pop())
 
         self._use_actions(1)
+
+        return True, FailureCause.none
 
     def connect_cities(self, player, city1, city2, edge_color, cards):
         """
@@ -241,7 +246,7 @@ class Game:
 
         # Find the edge and claim it if possible.
         for edge in city1.edges:
-            if edge.contains_city(city2) and not edge.is_claimed() and edge.color == edge_color:
+            if edge.contains_city(city2) and not self.edge_is_claimed(edge) and edge.color() == edge_color:
                 # Player must have the given cards.
                 if not self.in_hand(player, cards):
                     return False, FailureCause.missing_cards
@@ -250,14 +255,32 @@ class Game:
                 if not self.cards_match(edge, cards):
                     return False, FailureCause.incompatible_cards
 
-                edge.claim(player)
+                self._claim_edge(edge, player)
                 self.lose_cards(player, cards)
-                self._player_scores[player] = self._player_scores[player] + self._scoring[edge.cost]
+                self._player_scores[player.name] = self._player_scores[player.name] + self._scoring[edge.cost]
                 self._use_actions(2)
 
                 return True, FailureCause.none
 
         return False, FailureCause.no_route
+
+    def _claim_edge(self, edge, player):
+        """
+        Claim an edge for a player.
+
+        :param edge:
+        :param player:
+        """
+        self._edge_claims[edge] = player.name
+
+    def edge_is_claimed(self, edge):
+        """
+        Determines if an edge is claimed.
+
+        :param edge:
+        :return: True if the edge is claimed, false otherwise.
+        """
+        return self._edge_claims[edge] is not None
 
     def _use_actions(self, num_actions):
         """

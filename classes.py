@@ -10,59 +10,34 @@ class Colors:
         return Colors.colors_list[color] if len(Colors.colors_list) > color else 'None'
 
 
-class City():
-    def __init__(self, name, abbreviation):
-        self.name = name
-        self.abbreviation = abbreviation
-        self.edges = []
-
-    def to_tuple(self):
-        return CityTuple(self.name, self.abbreviation, self.edges)
-
-
-class CityTuple(tuple):
-    def __new__(cls, name, abbreviation, edges):
-        return tuple.__new__(cls, (name, abbreviation, tuple(edges)))
-
-    def __str__(self):
-        return self[0]
-
-    def abbreviation(self):
-        return self[1]
-
-    def edges(self):
-        return self[2]
-
-
-class Edge:
-    def __init__(self, city1, city2, cost, color):
-        self.city1 = city1
-        self.city2 = city2
-        self.color = color
-        self.cost = cost
-        self.claimed_by = None
-        city1.edges.append(self)
-        city2.edges.append(self)
-
-    def claim(self, player):
-        self.claimed_by = player
+class Edge(tuple):
+    def __new__(cls, city1, city2, cost, color):
+        return tuple.__new__(cls, (city1, city2, cost, color))
 
     def other_city(self, city):
-        if city == self.city1:
-            return self.city2
-        if city == self.city2:
-            return self.city1
+        if city == self[0]:
+            return self[1]
+        if city == self[1]:
+            return self[0]
         return None
 
     def contains_city(self, city):
-        return self.city1 == city or self.city2 == city
+        return self[0] == city or self[1] == city
 
-    def is_claimed(self):
-        return self.claimed_by is not None
+    def city1(self):
+        return self[0]
+
+    def city2(self):
+        return self[1]
+
+    def cost(self):
+        return self[2]
+
+    def color(self):
+        return self[3]
 
     def __str__(self):
-        return "(%s, %s, %s, %s, %s)" % \
-               (str(self.city1), str(self.city2), Colors.str(self.color), str(self.cost), str(self.claimed_by))
+        return "(%s, %s, %s, %s)" % (str(self[0]), str(self[1]), str(self[2]), Colors.str(self[3]))
 
 
 class Destination(tuple):
@@ -83,6 +58,7 @@ class Player:
     """
     A player.  This is more a token to identify a player than anything else.
     """
+
     def __init__(self, name):
         self.name = name
 
@@ -92,12 +68,14 @@ class Player:
 
 class Methods:
     @staticmethod
-    def connected(city1, city2, player):
+    def connected(city1, city2, city_edges, edge_claims, player):
         """
         Perform a depth-first search to determine if 2 cities are connected by a route from a given player.
 
         :param city1: The first city.
         :param city2: The second city.
+        :param city_edges: A dictionary of which cities, as keys, have which edges.
+        :param edge_claims: A dictionary with edges as keys of which edges are claimed by which players.
         :param player: The player who owns the route being checked.
         :return: True if connected, false otherwise.
         """
@@ -111,11 +89,11 @@ class Methods:
             if city in visited:
                 continue
 
-            for edge in city.edges:
-                if edge.claimedBy == player:
+            for edge in city_edges[city]:
+                if edge_claims[edge] == player.name:
                     other_city = edge.other_city(city)
 
-                    # We're done if this is the other city
+                    # We're done if this is the city we're trying to connect to.
                     if other_city == city2:
                         return True
 
