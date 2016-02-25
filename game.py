@@ -1,7 +1,7 @@
-from copy import copy
-
 from board import create_board
+from cards import init_decks
 from classes import Colors, Hand
+from methods import connected
 
 
 class FailureCause:
@@ -13,7 +13,8 @@ class Game:
     starting_hand_size = 5
 
     def __init__(self, players):
-        self._city_edges, self._edges, self._deck, self._destinations, self._scoring = create_board()
+        self._city_edges, self._edges, self._scoring = create_board()
+        self._deck, self._destinations = init_decks()
 
         self._players = players
 
@@ -83,11 +84,10 @@ class Game:
         """
         return self._player_scores[player.name]
 
-    def get_all_scores(self, player):
+    def get_all_scores(self):
         """
         See the scores of all players.
 
-        :param player: The player.
         :return: A dictionary of all opponents by name and their scores.
         """
         return dict(self._player_scores)
@@ -257,12 +257,30 @@ class Game:
 
                 self._claim_edge(edge, player)
                 self.lose_cards(player, cards)
-                self._player_scores[player.name] = self._player_scores[player.name] + self._scoring[edge.cost]
+
+                # Update score.
+                self._player_scores[player.name] += self._scoring[edge.cost]
+                self._check_connections(player)
+
+                # End turn.
                 self._use_actions(2)
 
                 return True, FailureCause.none
 
         return False, FailureCause.no_route
+
+    def _check_connections(self, player):
+        """
+        Check if a player has made any connections from their hand of destinations.  If they have, remove that
+        destination and give them points for it.
+
+        :param player: The player.
+        """
+        for destination in self.get_destinations(player):
+            if connected(destination.city1(), destination.city2(), self._city_edges, self._edge_claims, player):
+                self._player_scores[player.name] += destination.value() * 2
+
+                self._player_destinations[player.name].remove(destination)
 
     def _claim_edge(self, edge, player):
         """
@@ -277,7 +295,7 @@ class Game:
         """
         Determines if an edge is claimed.
 
-        :param edge:
+        :param edge: The edge to claim.
         :return: True if the edge is claimed, false otherwise.
         """
         return self._edge_claims[edge] is not None
