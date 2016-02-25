@@ -13,7 +13,7 @@ class FailureCause:
         pass
 
     none, no_route, wrong_turn, missing_cards, incompatible_cards, already_drew, deck_empty, invalid_card_index, \
-        insufficient_cars, game_over = range(10)
+        insufficient_cars, game_over, deck_out_of_cards = range(11)
 
 
 class Game:
@@ -39,7 +39,7 @@ class Game:
 
             # Reduce score by all incomplete destinations.
             for destination in destinations:
-                score -= destination.value()
+                score -= destination.value
 
             num_cars = 45
 
@@ -96,6 +96,14 @@ class Game:
         :return: A dictionary of all opponents by name and their scores.
         """
         return dict(self._visible_scores)
+
+    def cards_in_deck(self):
+        """
+        Determine how many cards are left in the deck.
+
+        :return: The number of cards in the deck.
+        """
+        return len(self._deck)
 
     def is_turn(self, player):
         """
@@ -185,6 +193,10 @@ class Game:
         if card_index >= len(self._face_up_cards):
             return False, FailureCause.invalid_card_index
 
+        # Make sure that there are cards to draw.
+        if not self._deck:
+            return False, FailureCause.deck_out_of_cards
+
         card = self._face_up_cards[card_index]
         hand = self._player_info[player].hand
 
@@ -218,6 +230,10 @@ class Game:
         # Make sure it is the correct turn.
         if not self.is_turn(player):
             return False, FailureCause.wrong_turn
+
+        # Make sure that there are cards to draw.
+        if not self._deck:
+            return False, FailureCause.deck_out_of_cards
 
         hand = self._player_info[player].hand
 
@@ -254,7 +270,7 @@ class Game:
 
         # Find the edge and claim it if possible.
         for edge in city1.edges:
-            if edge.contains_city(city2) and not self._edge_is_claimed(edge) and edge.color() == edge_color:
+            if edge.contains_city(city2) and not self._edge_is_claimed(edge) and edge.color == edge_color:
                 # Player must have the given cards.
                 if not self.in_hand(player, cards):
                     return False, FailureCause.missing_cards
@@ -264,12 +280,12 @@ class Game:
                     return False, FailureCause.incompatible_cards
 
                 # Player must have enough cars.
-                if self._player_info[player].num_cars < edge.cost():
+                if self._player_info[player].num_cars < edge.cost:
                     return False, FailureCause.insufficient_cars
 
                 self._claim_edge(edge, player)
                 self._lose_cards(player, cards)
-                self._player_info[player].num_cars -= edge.cost()
+                self._player_info[player].num_cars -= edge.cost
 
                 # Update score.
                 self._player_info[player].score += self._scoring[edge.cost]
@@ -307,8 +323,8 @@ class Game:
         :param player: The player.
         """
         for destination in list(self._player_info[player].destinations):
-            if connected(destination.city1(), destination.city2(), self._city_edges, self._edge_claims, player):
-                self._player_info[player].score += destination.value() * 2
+            if connected(destination.city1, destination.city2, self._city_edges, self._edge_claims, player):
+                self._player_info[player].score += destination.value * 2
 
                 self._player_info[player].destinations.remove(destination)
 

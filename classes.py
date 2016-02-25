@@ -1,3 +1,6 @@
+import collections
+
+
 class Colors:
     """
     Used as an enum to hold possible color values.
@@ -10,48 +13,27 @@ class Colors:
         return Colors.colors_list[color] if len(Colors.colors_list) > color else 'None'
 
 
-class Edge(tuple):
+class Edge(collections.namedtuple("Edge", "city1 city2 cost color")):
     def __new__(cls, city1, city2, cost, color):
         return tuple.__new__(cls, (city1, city2, cost, color))
 
     def other_city(self, city):
-        if city == self[0]:
-            return self[1]
-        if city == self[1]:
-            return self[0]
+        if city == self.city1:
+            return self.city2
+        if city == self.city1:
+            return self.city2
         return None
 
     def contains_city(self, city):
-        return self[0] == city or self[1] == city
-
-    def city1(self):
-        return self[0]
-
-    def city2(self):
-        return self[1]
-
-    def cost(self):
-        return self[2]
-
-    def color(self):
-        return self[3]
+        return self.city1 == city or self.city2 == city
 
     def __str__(self):
-        return "(%s, %s, %s, %s)" % (str(self[0]), str(self[1]), str(self[2]), Colors.str(self[3]))
+        return "(%s, %s, %s, %s)" % (str(self.city1), str(self.city2), str(self.cost), Colors.str(self.color))
 
 
-class Destination(tuple):
+class Destination(collections.namedtuple("Destination", "city1 city2 value")):
     def __new__(cls, city1, city2, value):
         return tuple.__new__(cls, (city1, city2, value))
-
-    def city1(self):
-        return self[0]
-
-    def city2(self):
-        return self[1]
-
-    def value(self):
-        return self[2]
 
 
 class Hand:
