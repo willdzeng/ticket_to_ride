@@ -1,5 +1,4 @@
-from random import shuffle
-from classes import Edge, Colors, Destination
+from classes import Edge, Colors
 
 
 def create_board():
@@ -7,43 +6,43 @@ def create_board():
     Initializes the entirety of the board state.
     """
     # Initialize all cities.
-    cities = ("Atlanta",
-              "Boston",
-              "Calgary",
-              "Charleston",
-              "Chicago",
-              "Dallas",
-              "Denver",
-              "Duluth",
-              "El Paso",
-              "Helena",
-              "Houston",
-              "Kansas City",
-              "Las Vegas",
-              "Little Rock",
-              "Los Angeles",
-              "Miami",
-              "Montreal",
-              "Nashville",
-              "New Orleans",
-              "New York",
-              "Oklahoma City",
-              "Omaha",
-              "Phoenix",
-              "Pittsburgh",
-              "Portland",
-              "Raleigh",
-              "Saint Louis",
-              "Salt Lake City",
-              "San Francisco",
-              "Santa Fe",
-              "Sault St. Marie",
-              "Seattle",
-              "Toronto",
-              "Vancouver",
-              "Washington DC",
-              "Winnipeg",
-              )
+    # cities = ("Atlanta",
+    #           "Boston",
+    #           "Calgary",
+    #           "Charleston",
+    #           "Chicago",
+    #           "Dallas",
+    #           "Denver",
+    #           "Duluth",
+    #           "El Paso",
+    #           "Helena",
+    #           "Houston",
+    #           "Kansas City",
+    #           "Las Vegas",
+    #           "Little Rock",
+    #           "Los Angeles",
+    #           "Miami",
+    #           "Montreal",
+    #           "Nashville",
+    #           "New Orleans",
+    #           "New York",
+    #           "Oklahoma City",
+    #           "Omaha",
+    #           "Phoenix",
+    #           "Pittsburgh",
+    #           "Portland",
+    #           "Raleigh",
+    #           "Saint Louis",
+    #           "Salt Lake City",
+    #           "San Francisco",
+    #           "Santa Fe",
+    #           "Sault St. Marie",
+    #           "Seattle",
+    #           "Toronto",
+    #           "Vancouver",
+    #           "Washington DC",
+    #           "Winnipeg",
+    #           )
 
     # Create all the edges between cities.
     edges = [
@@ -146,9 +145,9 @@ def create_board():
 
     # Map cities to edges.
     for edge in edges:
-        if not edge.city1 in city_edges:
+        if edge.city1 not in city_edges:
             city_edges[edge.city1] = ()
-        if not edge.city2 in city_edges:
+        if edge.city2 not in city_edges:
             city_edges[edge.city2] = ()
 
         city_edges[edge.city1] = city_edges[edge.city1] + (edge,)

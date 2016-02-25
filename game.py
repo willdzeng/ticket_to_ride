@@ -1,12 +1,14 @@
+from copy import deepcopy
+
 from board import create_board
 from cards import init_decks
-from classes import Colors, Hand
+from classes import Colors, Hand, PlayerInfo
 from methods import connected
 
 
 class FailureCause:
-    none, no_route, wrong_turn, missing_cards, incompatible_cards, already_drew, deck_empty, invalid_card_index = \
-        range(8)
+    none, no_route, wrong_turn, missing_cards, incompatible_cards, already_drew, deck_empty, invalid_card_index, \
+    insufficient_cars = range(9)
 
 
 class Game:
@@ -18,26 +20,31 @@ class Game:
 
         self._players = players
 
-        # Set the first player to have the first turn.
-        self._current_player_index = 0
-
-        # Give each player a hand of 5 cards from the top of the deck.
-        self._player_hands = {}
+        # Initialize info for all players.
+        self._player_info = {}
         for player in players:
-            self._player_hands[player] = Hand([self._deck.pop() for x in range(self.starting_hand_size)])
+            # Give each player a hand of 5 cards from the top of the deck.
+            hand = Hand([self._deck.pop() for x in range(self.starting_hand_size)])
 
-        # Give each player a score of 0.
-        self._player_scores = {player.name: 0 for player in self._players}
+            score = 0
 
-        # Give each player 3 destinations.
-        self._player_destinations = {}
-        for player in players:
-            self._player_destinations[player] = [self._destinations.pop(), self._destinations.pop(),
-                                                 self._destinations.pop()]
+            # Give each player 3 destinations.
+            destinations = [self._destinations.pop(), self._destinations.pop(),
+                            self._destinations.pop()]
 
             # Reduce score by all incomplete destinations.
-            for dest in self._player_destinations[player]:
-                self._player_scores[player.name] -= dest.value()
+            for destination in destinations:
+                score -= destination.value()
+
+            num_cars = 45
+
+            self._player_info[player] = PlayerInfo(hand, destinations, num_cars, score)
+
+        # Visible scores are set to zero.
+        self._visible_scores = {player.name: 0 for player in self._players}
+
+        # Set the first player to have the first turn.
+        self._current_player_index = 0
 
         # Select 5 face up cards.
         self._face_up_cards = [self._deck.pop() for x in range(5)]
@@ -66,40 +73,22 @@ class Game:
         """
         return list(self._face_up_cards)
 
-    def get_destinations(self, player):
+    def get_player_info(self, player):
         """
-        Get the destinations for a player.
+        Get all of the game info of player.
 
         :param player: The player.
-        :return: The destinations of the player.
+        :return: The player's game info.
         """
-        return list(self._player_destinations[player])
+        return deepcopy(self._player_info[player])
 
-    def get_score(self, player):
+    def get_visible_scores(self):
         """
-        See a player's score.
-
-        :param player: The player.
-        :return: The player's score.
-        """
-        return self._player_scores[player.name]
-
-    def get_all_scores(self):
-        """
-        See the scores of all players.
+        See the visible scores of all players.
 
         :return: A dictionary of all opponents by name and their scores.
         """
-        return dict(self._player_scores)
-
-    def get_hand(self, player):
-        """
-        Get a player's hand.
-
-        :param player: The player.
-        :return: The hand of the player.
-        """
-        return list(self._player_hands[player])
+        return dict(self._visible_scores)
 
     def is_turn(self, player):
         """
@@ -126,7 +115,7 @@ class Game:
         :param cards: The cards to check for.
         :return: True if the cards are present, false otherwise.
         """
-        return self._player_hands[player].contains_cards(cards)
+        return self._player_info[player].hand.contains_cards(cards)
 
     @staticmethod
     def cards_match(edge, cards):
@@ -163,7 +152,7 @@ class Game:
         :param player: The player whose cards to remove.
         :param cards: The cards to remove.
         """
-        hand = self._player_hands[player]
+        hand = self._player_info[player].hand
 
         for card in cards:
             hand.remove_card(card)
@@ -186,7 +175,7 @@ class Game:
             return False, FailureCause.invalid_card_index
 
         card = self._face_up_cards[card_index]
-        hand = self._player_hands[player]
+        hand = self._player_info[player].hand
 
         # Wilds require 2 actions.
         if card == Colors.none and self._num_actions_remaining == 1:
@@ -215,7 +204,7 @@ class Game:
         if not self.is_turn(player):
             return False, FailureCause.wrong_turn
 
-        hand = self._player_hands[player]
+        hand = self._player_info[player].hand
 
         hand.add_card(self._deck.pop())
 
@@ -255,11 +244,17 @@ class Game:
                 if not self.cards_match(edge, cards):
                     return False, FailureCause.incompatible_cards
 
+                # Player must have enough cars.
+                if self._player_info[player].num_cars < edge.cost():
+                    return False, FailureCause.insufficient_cars
+
                 self._claim_edge(edge, player)
                 self.lose_cards(player, cards)
+                self._player_info[player].num_cars -= edge.cost()
 
                 # Update score.
-                self._player_scores[player.name] += self._scoring[edge.cost]
+                self._player_info[player].score += self._scoring[edge.cost]
+                self._visible_scores[player.name] += self._scoring[edge.cost]
                 self._check_connections(player)
 
                 # End turn.
@@ -276,11 +271,11 @@ class Game:
 
         :param player: The player.
         """
-        for destination in self.get_destinations(player):
+        for destination in list(self._player_info[player].destinations):
             if connected(destination.city1(), destination.city2(), self._city_edges, self._edge_claims, player):
-                self._player_scores[player.name] += destination.value() * 2
+                self._player_info[player].score += destination.value() * 2
 
-                self._player_destinations[player.name].remove(destination)
+                self._player_info[player].destinations.remove(destination)
 
     def _claim_edge(self, edge, player):
         """

@@ -54,18 +54,6 @@ class Destination(tuple):
         return self[2]
 
 
-class Player:
-    """
-    A player.  This is more a token to identify a player than anything else.
-    """
-
-    def __init__(self, name):
-        self.name = name
-
-    def __str__(self):
-        return self.name
-
-
 class Hand:
     def __init__(self, cards):
         self.cards = cards
@@ -89,3 +77,23 @@ class Hand:
                 return False
 
         return True
+
+
+class Player:
+    """
+    A player.  This is more a token to identify a player than anything else, since it contains no information.
+    """
+
+    def __init__(self, name):
+        self.name = name
+
+    def __str__(self):
+        return self.name
+
+
+class PlayerInfo:
+    def __init__(self, hand, destinations, num_cars, score=0):
+        self.score = score
+        self.destinations = destinations
+        self.hand = hand
+        self.num_cars = num_cars
