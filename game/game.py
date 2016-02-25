@@ -1,8 +1,6 @@
-from copy import deepcopy
-
+from copy import deepcopy, copy
 import operator
-
-from board import create_board
+from board import create_board, get_scoring
 from cards import init_decks
 from classes import Colors, Hand, PlayerInfo
 from methods import connected
@@ -19,9 +17,17 @@ class FailureCause:
 class Game:
     starting_hand_size = 5
 
-    def __init__(self, players):
-        self._city_edges, self._edges, self._scoring = create_board()
-        self._deck, self._destinations = init_decks()
+    def __init__(self, players, custom_settings=False, city_edges=None, edges=None, deck=None, destinations=None):
+        if not custom_settings:
+            self._city_edges, self._edges = create_board()
+            self._deck, self._destinations = init_decks()
+        else:
+            self._city_edges = city_edges
+            self._edges = edges
+            self._deck = deck
+            self._destinations = destinations
+
+        self._scoring = get_scoring()
 
         self._players = players
 

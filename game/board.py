@@ -141,6 +141,10 @@ def create_board():
         Edge("Seattle", "Vancouver", cost=1, color=Colors.none),
     ]
 
+    return create_city_edges(edges), edges
+
+
+def create_city_edges(edges):
     city_edges = {}
 
     # Map cities to edges.
@@ -153,12 +157,14 @@ def create_board():
         city_edges[edge.city1] = city_edges[edge.city1] + (edge,)
         city_edges[edge.city2] = city_edges[edge.city2] + (edge,)
 
-    # Create a dictionary for scoring.
-    scoring = {1: 1,
-               2: 2,
-               3: 4,
-               4: 7,
-               5: 10,
-               6: 15}
+    return city_edges
 
-    return city_edges, edges, scoring
+
+def get_scoring():
+    # Create a dictionary for scoring.
+    return {1: 1,
+            2: 2,
+            3: 4,
+            4: 7,
+            5: 10,
+            6: 15}
