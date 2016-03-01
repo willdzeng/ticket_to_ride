@@ -41,7 +41,7 @@ class Hand:
         self.cards = cards
 
     def add_card(self, card):
-        self.cards.add(card)
+        self.cards.append(card)
 
     def remove_card(self, card):
         if card in self.cards:

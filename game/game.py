@@ -15,7 +15,7 @@ class FailureCause:
 
 
 class Game:
-    starting_hand_size = 5
+    starting_hand_size = 4
 
     def __init__(self, players, custom_settings=False, city_edges=None, edges=None, deck=None, destinations=None):
         if not custom_settings:
@@ -196,7 +196,7 @@ class Game:
             return False, FailureCause.wrong_turn
 
         # Make sure index is valid.
-        if card_index >= len(self._face_up_cards):
+        if card_index >= len(self._face_up_cards) or card_index < 0:
             return False, FailureCause.invalid_card_index
 
         # Make sure that there are cards to draw.

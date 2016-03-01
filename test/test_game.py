@@ -1,8 +1,8 @@
 import unittest
-
 from game import Game
 from game.classes import *
 from game.board import create_city_edges
+from game.game import FailureCause
 
 
 class TestGame(unittest.TestCase):
@@ -22,8 +22,8 @@ class TestGame(unittest.TestCase):
         #       A---3--B
         #       |     / \
         #       |    /   2
-        #       5   6    \
-        #       |  /     D
+        #       5   6     \
+        #       |  /       D
         #       | /
         #       C
         # ---------------------
@@ -47,7 +47,7 @@ class TestGame(unittest.TestCase):
         :return: A tuple with the colored cards and destinations.
         """
 
-        deck = ([Colors.none] * 10) + ([Colors.green] * 3) + ([Colors.blue] * 5) + ([Colors.red] * 5)
+        deck = ([Colors.none] * 10) + ([Colors.green] * 3) + ([Colors.blue] * 4) + ([Colors.red] * 4)
 
         destinations = [Destination("A", "B", 5),
                         Destination("A", "D", 10),
@@ -59,8 +59,8 @@ class TestGame(unittest.TestCase):
         hand1 = self.game.get_player_info(self.player1).hand
         hand2 = self.game.get_player_info(self.player2).hand
 
-        self.assertListEqual(hand1.cards, [Colors.red] * 5, "Player 1 should have 5 red cards.")
-        self.assertListEqual(hand2.cards, [Colors.blue] * 5, "Player 2 should have 5 blue cards.")
+        self.assertListEqual(hand1.cards, [Colors.red] * 4, "Player 1 should have 4 red cards.")
+        self.assertListEqual(hand2.cards, [Colors.blue] * 4, "Player 2 should have 4 blue cards.")
 
     def test_starting_scores(self):
         score1 = self.game.get_player_info(self.player1).score
@@ -95,6 +95,80 @@ class TestGame(unittest.TestCase):
 
         self.assertIsNone(self.game.get_edge_claims()[Edge("A", "B", 3, Colors.blue)],
                           "The returned edge claims object was mutable.")
+
+    def test_draw_deck(self):
+        self.assertEqual(self.game.cards_in_deck(), 8)
+
+        self.assertTrue(self.game.draw_from_deck(self.player1))
+
+        # One less card in deck
+        self.assertEqual(self.game.cards_in_deck(), 7)
+
+        hand = self.game.get_player_info(self.player1).hand
+
+        # Should have drawn a wild card
+        self.assertListEqual(hand.cards, ([Colors.red] * 4) + [Colors.none])
+        self.assertEqual(self.game.cards_in_deck(), 7)
+
+    def test_draw_face_up(self):
+        self.assertEqual(self.game.cards_in_deck(), 8)
+        self.assertListEqual(self.game.get_face_up_cards(), [Colors.green] * 3 + [Colors.none] * 2)
+
+        self.assertTrue(self.game.draw_face_up_card(self.player1, 2))
+
+        # One less card in deck.
+        self.assertEqual(self.game.cards_in_deck(), 7)
+
+        hand = self.game.get_player_info(self.player1).hand
+
+        # Assert face up cards changed
+        self.assertListEqual(self.game.get_face_up_cards(), [Colors.green] * 2 + [Colors.none] * 3)
+
+        # Should have drawn a green card
+        self.assertListEqual(hand.cards, ([Colors.red] * 4) + [Colors.green])
+        self.assertEqual(self.game.cards_in_deck(), 7)
+
+    def test_draw_deck_ends_turn(self):
+        self.assertTrue(self.game.draw_from_deck(self.player1))
+        self.assertTrue(self.game.is_turn(self.player1), "Player 2's turn is not over")
+
+        self.assertTrue(self.game.draw_from_deck(self.player1))
+
+        self.assertFalse(self.game.is_turn(self.player1), "Player 2's turn is over")
+        self.assertTrue(self.game.is_turn(self.player2), "Player 1's turn begins")
+
+    def test_draw_face_up_ends_turn(self):
+        self.assertTrue(self.game.draw_face_up_card(self.player1, 1))
+        self.assertTrue(self.game.is_turn(self.player1), "Player 2's turn is not over")
+
+        self.assertTrue(self.game.draw_face_up_card(self.player1, 0))
+
+        self.assertFalse(self.game.is_turn(self.player1), "Player 2's turn is over")
+        self.assertTrue(self.game.is_turn(self.player2), "Player 1's turn begins")
+
+    def test_draw_face_up_wild_ends_turn(self):
+        self.assertTrue(self.game.draw_face_up_card(self.player1, 4))
+        self.assertFalse(self.game.is_turn(self.player1), "Player 2's turn is over")
+        self.assertTrue(self.game.is_turn(self.player2), "Player 1's turn begins")
+
+    def test_draw_face_up_then_wild(self):
+        self.game.draw_face_up_card(self.player1, 1)
+
+        self.assertEqual(self.game.draw_face_up_card(self.player1, 4), (False, FailureCause.already_drew))
+
+    def test_cannot_draw_deck_wrong_turn(self):
+        self.assertEqual(self.game.draw_from_deck(self.player2), (False, FailureCause.wrong_turn))
+
+    def test_cannot_draw_face_up_wrong_turn(self):
+        self.assertEqual(self.game.draw_face_up_card(self.player2, 3), (False, FailureCause.wrong_turn))
+
+    def test_draw_face_up_wrong_index(self):
+        self.assertEqual(self.game.draw_face_up_card(self.player1, -1), (False, FailureCause.invalid_card_index))
+        self.assertEqual(self.game.draw_face_up_card(self.player1, 5), (False, FailureCause.invalid_card_index))
+
+    # TODO: Test game ending conditions
+    # TODO: Test connections
+
 
 if __name__ == '__main__':
     unittest.main()

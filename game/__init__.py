@@ -3,6 +3,6 @@ from game import Game
 
 game = Game([Player("P1"), Player("P2")])
 
-# TODO: Way to change defaults for testing
 # TODO: Tests
 # TODO: Log of last player's actions.
+# TODO: Reshuffle deck on empty
