@@ -17,6 +17,9 @@ class Edge(collections.namedtuple("Edge", "city1 city2 cost color")):
     def __new__(cls, city1, city2, cost, color):
         return tuple.__new__(cls, (city1, city2, cost, color))
 
+    def __init__(self, city1, city2, cost, color):
+        super(Edge, self).__init__()
+
     def other_city(self, city):
         if city == self.city1:
             return self.city2
@@ -34,6 +37,9 @@ class Edge(collections.namedtuple("Edge", "city1 city2 cost color")):
 class Destination(collections.namedtuple("Destination", "city1 city2 value")):
     def __new__(cls, city1, city2, value):
         return tuple.__new__(cls, (city1, city2, value))
+
+    def __init__(self, city1, city2, value):
+        super(Destination, self).__init__()
 
 
 class Hand:

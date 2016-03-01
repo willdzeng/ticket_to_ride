@@ -1,5 +1,7 @@
-from copy import deepcopy, copy
+from copy import deepcopy
 import operator
+from random import shuffle
+
 from board import create_board, get_scoring
 from cards import init_decks
 from classes import Colors, Hand, PlayerInfo
@@ -35,6 +37,7 @@ class Game:
         self._player_info = {}
         for player in players:
             # Give each player a hand of 5 cards from the top of the deck.
+            # noinspection PyUnusedLocal
             hand = Hand([self._deck.pop() for x in range(self.starting_hand_size)])
 
             score = 0
@@ -58,6 +61,7 @@ class Game:
         self._current_player_index = 0
 
         # Select 5 face up cards.
+        # noinspection PyUnusedLocal
         self._face_up_cards = [self._deck.pop() for x in range(5)]
 
         # The number of actions the player has left to take this turn.
@@ -67,6 +71,8 @@ class Game:
         self._edge_claims = {edge: None for edge in self._edges}
 
         self._game_is_over = False
+
+        self._discards = []
 
     def get_scoring(self):
         """
@@ -110,6 +116,14 @@ class Game:
         :return: The number of cards in the deck.
         """
         return len(self._deck)
+
+    def cards_in_discard(self):
+        """
+        Determine how many cards are in the discard pile.
+
+        :return: The number of cards in the discard pile.
+        """
+        return len(self._discards)
 
     def is_turn(self, player):
         """
@@ -219,6 +233,9 @@ class Game:
         # Complete action.
         self._use_actions(1 if card != Colors.none else 2)
 
+        # Check that the deck is not empty.
+        self._check_deck()
+
         return True, FailureCause.none
 
     def draw_from_deck(self, player):
@@ -246,6 +263,9 @@ class Game:
         hand.add_card(self._deck.pop())
 
         self._use_actions(1)
+
+        # Check that the deck is not empty.
+        self._check_deck()
 
         return True, FailureCause.none
 
@@ -321,6 +341,8 @@ class Game:
         for card in cards:
             hand.remove_card(card)
 
+            self._discards.append(card)
+
     def _check_connections(self, player):
         """
         Check if a player has made any connections from their hand of destinations.  If they have, remove that
@@ -373,3 +395,11 @@ class Game:
 
         # Update visible scores to final values.
         self._visible_scores = {player.name: self._player_info[player].score for player in self._players}
+
+    def _check_deck(self):
+        """
+        If the deck is empty, shuffle the discards back in and create a new deck.
+        """
+        if not self._deck:
+            self._deck = shuffle(self._discards)
+            self._discards = []

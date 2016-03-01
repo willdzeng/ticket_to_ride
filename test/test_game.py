@@ -168,6 +168,7 @@ class TestGame(unittest.TestCase):
 
     # TODO: Test game ending conditions
     # TODO: Test connections
+    # TODO: Check empty deck gets shuffled
 
 
 if __name__ == '__main__':
