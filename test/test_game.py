@@ -3,6 +3,7 @@ from game import Game
 from game.classes import *
 from game.board import create_city_edges
 from game.game import FailureCause
+from game.methods import connected
 
 
 class TestGame(unittest.TestCase):
@@ -10,29 +11,30 @@ class TestGame(unittest.TestCase):
         self.player1 = Player("Player 1")
         self.player2 = Player("Player 2")
 
-        edges, city_edges = self.create_test_board()
-        deck, destinations = self.create_test_deck()
+        self.edges, self.city_edges = self.create_test_board()
+        self.deck, self.destinations = self.create_test_deck()
 
-        self.game = Game([self.player1, self.player2], custom_settings=True, edges=edges, city_edges=city_edges,
-                         deck=deck,
-                         destinations=destinations)
+        self.game = Game([self.player1, self.player2], custom_settings=True, edges=self.edges,
+                         city_edges=self.city_edges, deck=self.deck, num_cars=12,
+                         destinations=self.destinations)
 
     def create_test_board(self):
         # ----------------------
         #       A---3--B
         #       |     / \
         #       |    /   2
-        #       5   6     \
-        #       |  /       D
+        #       4   6     \
+        #       |  /       D--5--E
         #       | /
         #       C
         # ---------------------
 
         edges = [
             Edge("A", "B", 3, Colors.blue),
-            Edge("A", "C", 5, Colors.red),
+            Edge("A", "C", 4, Colors.red),
             Edge("B", "C", 6, Colors.none),
             Edge("B", "D", 2, Colors.red),
+            Edge("D", "E", 5, Colors.red),
         ]
 
         city_edges = create_city_edges(edges)
@@ -99,7 +101,7 @@ class TestGame(unittest.TestCase):
     def test_draw_deck(self):
         self.assertEqual(self.game.cards_in_deck(), 8)
 
-        self.assertTrue(self.game.draw_from_deck(self.player1))
+        self.assertTrue(self.game.draw_from_deck(self.player1), (True, FailureCause.none))
 
         # One less card in deck
         self.assertEqual(self.game.cards_in_deck(), 7)
@@ -114,7 +116,7 @@ class TestGame(unittest.TestCase):
         self.assertEqual(self.game.cards_in_deck(), 8)
         self.assertListEqual(self.game.get_face_up_cards(), [Colors.green] * 3 + [Colors.none] * 2)
 
-        self.assertTrue(self.game.draw_face_up_card(self.player1, 2))
+        self.assertEqual(self.game.draw_face_up_card(self.player1, 2), (True, FailureCause.none))
 
         # One less card in deck.
         self.assertEqual(self.game.cards_in_deck(), 7)
@@ -129,25 +131,25 @@ class TestGame(unittest.TestCase):
         self.assertEqual(self.game.cards_in_deck(), 7)
 
     def test_draw_deck_ends_turn(self):
-        self.assertTrue(self.game.draw_from_deck(self.player1))
+        self.assertEqual(self.game.draw_from_deck(self.player1), (True, FailureCause.none))
         self.assertTrue(self.game.is_turn(self.player1), "Player 2's turn is not over")
 
-        self.assertTrue(self.game.draw_from_deck(self.player1))
+        self.assertEqual(self.game.draw_from_deck(self.player1), (True, FailureCause.none))
 
         self.assertFalse(self.game.is_turn(self.player1), "Player 2's turn is over")
         self.assertTrue(self.game.is_turn(self.player2), "Player 1's turn begins")
 
     def test_draw_face_up_ends_turn(self):
-        self.assertTrue(self.game.draw_face_up_card(self.player1, 1))
+        self.assertEqual(self.game.draw_face_up_card(self.player1, 1), (True, FailureCause.none))
         self.assertTrue(self.game.is_turn(self.player1), "Player 2's turn is not over")
 
-        self.assertTrue(self.game.draw_face_up_card(self.player1, 0))
+        self.assertEqual(self.game.draw_face_up_card(self.player1, 0), (True, FailureCause.none))
 
         self.assertFalse(self.game.is_turn(self.player1), "Player 2's turn is over")
         self.assertTrue(self.game.is_turn(self.player2), "Player 1's turn begins")
 
     def test_draw_face_up_wild_ends_turn(self):
-        self.assertTrue(self.game.draw_face_up_card(self.player1, 4))
+        self.assertEqual(self.game.draw_face_up_card(self.player1, 4), (True, FailureCause.none))
         self.assertFalse(self.game.is_turn(self.player1), "Player 2's turn is over")
         self.assertTrue(self.game.is_turn(self.player2), "Player 1's turn begins")
 
@@ -166,10 +168,137 @@ class TestGame(unittest.TestCase):
         self.assertEqual(self.game.draw_face_up_card(self.player1, -1), (False, FailureCause.invalid_card_index))
         self.assertEqual(self.game.draw_face_up_card(self.player1, 5), (False, FailureCause.invalid_card_index))
 
-    # TODO: Test game ending conditions
-    # TODO: Test connections
-    # TODO: Check empty deck gets shuffled
+    def test_edge_other_city(self):
+        edge = Edge("A", "B", 3, Colors.blue)
 
+        self.assertEqual(edge.other_city("A"), "B")
+        self.assertEqual(edge.other_city("B"), "A")
 
-if __name__ == '__main__':
-    unittest.main()
+    def test_edge_contains_city(self):
+        edge = Edge("A", "B", 3, Colors.blue)
+
+        self.assertTrue(edge.contains_city("A"))
+        self.assertTrue(edge.contains_city("B"))
+        self.assertFalse(edge.contains_city("C"))
+
+    def test_hand_str(self):
+        hand = self.game.get_player_info(self.player1).hand
+        self.assertEqual(str(hand), "(Red, Red, Red, Red)")
+
+    def test_color_str(self):
+        self.assertEqual(str(Colors.str(Colors.green)), "Green")
+        self.assertEqual(str(Colors.str(Colors.none)), "None")
+        self.assertEqual(str(Colors.str_card(Colors.none)), "Wild")
+
+    def test_connected_multiple_edge(self):
+        edge_claims = self.game.get_edge_claims()
+
+        self.assertFalse(connected("A", "D", self.city_edges, edge_claims, self.player1))
+
+        edge_claims[self.edges[0]] = self.player1.name
+        edge_claims[self.edges[3]] = self.player1.name
+
+        self.assertTrue(connected("A", "D", self.city_edges, edge_claims, self.player1))
+        self.assertTrue(connected("D", "A", self.city_edges, edge_claims, self.player1))
+
+    def test_connected_player_in_way(self):
+        edge_claims = self.game.get_edge_claims()
+
+        self.assertFalse(connected("A", "D", self.city_edges, edge_claims, self.player1))
+
+        edge_claims[self.edges[0]] = self.player1.name
+        edge_claims[self.edges[3]] = self.player1.name
+
+        self.assertFalse(connected("A", "E", self.city_edges, edge_claims, self.player1))
+        self.assertFalse(connected("E", "A", self.city_edges, edge_claims, self.player1))
+
+        edge_claims[self.edges[4]] = self.player2.name
+
+        self.assertFalse(connected("A", "E", self.city_edges, edge_claims, self.player1))
+        self.assertFalse(connected("E", "A", self.city_edges, edge_claims, self.player1))
+
+    def test_connected_all_edge(self):
+        edge_claims = self.game.get_edge_claims()
+
+        self.assertFalse(connected("A", "D", self.city_edges, edge_claims, self.player1))
+
+        edge_claims[self.edges[0]] = self.player1.name
+        edge_claims[self.edges[1]] = self.player1.name
+        edge_claims[self.edges[2]] = self.player1.name
+        edge_claims[self.edges[3]] = self.player1.name
+        edge_claims[self.edges[4]] = self.player1.name
+
+        self.assertTrue(connected("A", "B", self.city_edges, edge_claims, self.player1))
+        self.assertTrue(connected("A", "C", self.city_edges, edge_claims, self.player1))
+        self.assertTrue(connected("A", "D", self.city_edges, edge_claims, self.player1))
+        self.assertTrue(connected("A", "E", self.city_edges, edge_claims, self.player1))
+        self.assertTrue(connected("B", "D", self.city_edges, edge_claims, self.player1))
+        self.assertTrue(connected("C", "D", self.city_edges, edge_claims, self.player1))
+
+    def test_connected_singe_edge(self):
+        edge_claims = self.game.get_edge_claims()
+
+        self.assertFalse(connected("A", "B", self.city_edges, edge_claims, self.player1))
+
+        edge_claims[self.edges[0]] = self.player1.name
+
+        self.assertTrue(connected("A", "B", self.city_edges, edge_claims, self.player1))
+
+    def test_cards_match(self):
+        cards1 = [Colors.red] * 4
+        cards2 = [Colors.green] * 4
+        edge = Edge("A", "B", color=Colors.red, cost=4)
+
+        self.assertTrue(Game.cards_match(edge, cards1))
+        self.assertFalse(Game.cards_match(edge, cards2))
+
+        edge = Edge("A", "B", color=Colors.red, cost=5)
+        self.assertFalse(Game.cards_match(edge, cards1))
+
+    def test_cards_match_wild(self):
+        cards1 = [Colors.red] * 2 + [Colors.none] * 2
+        cards2 = [Colors.green] * 4
+        edge = Edge("A", "B", color=Colors.red, cost=4)
+
+        self.assertTrue(Game.cards_match(edge, cards1))
+        self.assertFalse(Game.cards_match(edge, cards2))
+
+    def test_cards_match_none(self):
+        cards1 = [Colors.red] * 4
+        cards2 = [Colors.green] * 4
+        edge = Edge("A", "B", color=Colors.none, cost=4)
+
+        self.assertTrue(Game.cards_match(edge, cards1))
+        self.assertTrue(Game.cards_match(edge, cards2))
+
+    def test_connect_cities(self):
+        old_info = self.game.get_player_info(self.player1)
+
+        self.assertEqual(self.game.connect_cities(self.player1, "A", "C", Colors.red, [Colors.red] * 4),
+                         (True, FailureCause.none))
+        self.assertTrue(self.game.is_turn(self.player2))
+        self.assertFalse(self.game.is_turn(self.player1))
+
+        info = self.game.get_player_info(self.player1)
+
+        # No cards should be left in the player's hand.
+        self.assertListEqual(info.hand.cards, [])
+
+        # Check that score changed.
+        self.assertEqual(info.score, old_info.score + 7)
+        self.assertEqual(self.game.get_visible_scores()[self.player1.name], 7)
+
+        self.assertEqual(info.num_cars, old_info.num_cars - 4)
+        self.assertEqual(self.game.cards_in_discard(), 4)
+
+    def test_connect_cities_already_drew(self):
+        self.game.draw_from_deck(self.player1)
+
+        self.assertEqual(self.game.connect_cities(self.player1, "A", "C", Colors.red, [Colors.red] * 4),
+                         (False, FailureCause.already_drew))
+
+        self.assertTrue(self.game.is_turn(self.player1))
+
+        # TODO: Test game ending conditions
+        # TODO: Check empty deck gets shuffled
+        # TODO: Test connection failures

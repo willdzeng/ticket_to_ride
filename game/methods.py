@@ -12,7 +12,7 @@ def connected(city1, city2, city_edges, edge_claims, player):
     stack = [city1]
     visited = set()
 
-    while visited:
+    while stack:
         city = stack.pop()
 
         # Don't visit the same city twice.
@@ -30,3 +30,5 @@ def connected(city1, city2, city_edges, edge_claims, player):
                 stack.append(other_city)
 
         visited.add(city)
+
+    return False

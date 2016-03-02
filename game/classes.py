@@ -5,12 +5,20 @@ class Colors:
     """
     Used as an enum to hold possible color values.
     """
+
+    def __init__(self):
+        pass
+
     red, orange, blue, yellow, green, pink, black, white, none = range(9)
-    colors_list = ['Red', 'Orange', 'Blue', 'Yellow', 'Green', 'Pink', 'Black', 'White' 'None']
+    colors_list = ['Red', 'Orange', 'Blue', 'Yellow', 'Green', 'Pink', 'Black', 'White']
 
     @staticmethod
     def str(color):
         return Colors.colors_list[color] if len(Colors.colors_list) > color else 'None'
+
+    @staticmethod
+    def str_card(color):
+        return Colors.colors_list[color] if len(Colors.colors_list) > color else 'Wild'
 
 
 class Edge(collections.namedtuple("Edge", "city1 city2 cost color")):
@@ -23,8 +31,8 @@ class Edge(collections.namedtuple("Edge", "city1 city2 cost color")):
     def other_city(self, city):
         if city == self.city1:
             return self.city2
-        if city == self.city1:
-            return self.city2
+        if city == self.city2:
+            return self.city1
         return None
 
     def contains_city(self, city):
@@ -40,6 +48,9 @@ class Destination(collections.namedtuple("Destination", "city1 city2 value")):
 
     def __init__(self, city1, city2, value):
         super(Destination, self).__init__()
+
+    def __str__(self):
+        return "(%s, %s, %s)" % (str(self.city1), str(self.city2), str(self.value))
 
 
 class Hand:
@@ -66,6 +77,9 @@ class Hand:
 
         return True
 
+    def __str__(self):
+        return "(" + ", ".join(map(Colors.str_card, self.cards)) + ")"
+
 
 class Player:
     """
@@ -85,3 +99,10 @@ class PlayerInfo:
         self.destinations = destinations
         self.hand = hand
         self.num_cars = num_cars
+
+    def __str__(self):
+        return "{Private Score: %s\n" \
+               "Hand: %s\n" \
+               "Cars Remaining: %s\n" \
+               "Destinations: [%s]\n}" % (str(self.score), str(self.hand), str(self.num_cars),
+                                        ", ".join(map(str, self.destinations)))

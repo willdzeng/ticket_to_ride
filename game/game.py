@@ -19,15 +19,20 @@ class FailureCause:
 class Game:
     starting_hand_size = 4
 
-    def __init__(self, players, custom_settings=False, city_edges=None, edges=None, deck=None, destinations=None):
+    def __init__(self, players, custom_settings=False, city_edges=None, edges=None, deck=None, destinations=None,
+                 num_cars=45):
         if not custom_settings:
             self._city_edges, self._edges = create_board()
             self._deck, self._destinations = init_decks()
+
+            self._num_cars = 45
         else:
             self._city_edges = city_edges
             self._edges = edges
             self._deck = deck
             self._destinations = destinations
+
+            self._num_cars = num_cars
 
         self._scoring = get_scoring()
 
@@ -50,9 +55,7 @@ class Game:
             for destination in destinations:
                 score -= destination.value
 
-            num_cars = 45
-
-            self._player_info[player] = PlayerInfo(hand, destinations, num_cars, score)
+            self._player_info[player] = PlayerInfo(hand, destinations, self._num_cars, score)
 
         # Visible scores are set to zero.
         self._visible_scores = {player.name: 0 for player in self._players}
@@ -295,7 +298,7 @@ class Game:
             return False, FailureCause.already_drew
 
         # Find the edge and claim it if possible.
-        for edge in city1.edges:
+        for edge in self._city_edges[city1]:
             if edge.contains_city(city2) and not self._edge_is_claimed(edge) and edge.color == edge_color:
                 # Player must have the given cards.
                 if not self.in_hand(player, cards):
