@@ -61,8 +61,8 @@ class TestGame(unittest.TestCase):
         hand1 = self.game.get_player_info(self.player1).hand
         hand2 = self.game.get_player_info(self.player2).hand
 
-        self.assertListEqual(hand1.cards, [Colors.red] * 4, "Player 1 should have 4 red cards.")
-        self.assertListEqual(hand2.cards, [Colors.blue] * 4, "Player 2 should have 4 blue cards.")
+        self.assertDictEqual(hand1.cards, Counter([Colors.red] * 4), "Player 1 should have 4 red cards.")
+        self.assertDictEqual(hand2.cards, Counter([Colors.blue] * 4), "Player 2 should have 4 blue cards.")
 
     def test_starting_scores(self):
         score1 = self.game.get_player_info(self.player1).score
@@ -109,7 +109,7 @@ class TestGame(unittest.TestCase):
         hand = self.game.get_player_info(self.player1).hand
 
         # Should have drawn a wild card
-        self.assertListEqual(hand.cards, ([Colors.red] * 4) + [Colors.none])
+        self.assertDictEqual(hand.cards, Counter(([Colors.red] * 4) + [Colors.none]))
         self.assertEqual(self.game.cards_in_deck(), 7)
 
     def test_draw_face_up(self):
@@ -127,7 +127,7 @@ class TestGame(unittest.TestCase):
         self.assertListEqual(self.game.get_face_up_cards(), [Colors.green] * 2 + [Colors.none] * 3)
 
         # Should have drawn a green card
-        self.assertListEqual(hand.cards, ([Colors.red] * 4) + [Colors.green])
+        self.assertDictEqual(hand.cards, Counter(([Colors.red] * 4) + [Colors.green]))
         self.assertEqual(self.game.cards_in_deck(), 7)
 
     def test_draw_deck_ends_turn(self):
@@ -245,8 +245,8 @@ class TestGame(unittest.TestCase):
         self.assertTrue(connected("A", "B", self.city_edges, edge_claims, self.player1))
 
     def test_cards_match(self):
-        cards1 = [Colors.red] * 4
-        cards2 = [Colors.green] * 4
+        cards1 = Counter({Colors.red: 4})
+        cards2 = Counter({Colors.green: 4})
         edge = Edge("A", "B", color=Colors.red, cost=4)
 
         self.assertTrue(Game.cards_match(edge, cards1))
@@ -256,16 +256,16 @@ class TestGame(unittest.TestCase):
         self.assertFalse(Game.cards_match(edge, cards1))
 
     def test_cards_match_wild(self):
-        cards1 = [Colors.red] * 2 + [Colors.none] * 2
-        cards2 = [Colors.green] * 4
+        cards1 = Counter([Colors.red] * 2 + [Colors.none] * 2)
+        cards2 = Counter([Colors.green] * 4)
         edge = Edge("A", "B", color=Colors.red, cost=4)
 
         self.assertTrue(Game.cards_match(edge, cards1))
         self.assertFalse(Game.cards_match(edge, cards2))
 
     def test_cards_match_none(self):
-        cards1 = [Colors.red] * 4
-        cards2 = [Colors.green] * 4
+        cards1 = Counter([Colors.red] * 4)
+        cards2 = Counter([Colors.green] * 4)
         edge = Edge("A", "B", color=Colors.none, cost=4)
 
         self.assertTrue(Game.cards_match(edge, cards1))
@@ -274,7 +274,7 @@ class TestGame(unittest.TestCase):
     def test_connect_cities(self):
         old_info = self.game.get_player_info(self.player1)
 
-        self.assertEqual(self.game.connect_cities(self.player1, "A", "C", Colors.red, [Colors.red] * 4),
+        self.assertEqual(self.game.connect_cities(self.player1, "A", "C", Colors.red, Counter([Colors.red] * 4)),
                          (True, FailureCause.none))
         self.assertTrue(self.game.is_turn(self.player2))
         self.assertFalse(self.game.is_turn(self.player1))
@@ -282,7 +282,7 @@ class TestGame(unittest.TestCase):
         info = self.game.get_player_info(self.player1)
 
         # No cards should be left in the player's hand.
-        self.assertListEqual(info.hand.cards, [])
+        self.assertEqual(sum(info.hand.cards.values()), 0)
 
         # Check that score changed.
         self.assertEqual(info.score, old_info.score + 7)
@@ -302,3 +302,7 @@ class TestGame(unittest.TestCase):
         # TODO: Test game ending conditions
         # TODO: Check empty deck gets shuffled
         # TODO: Test connection failures
+
+
+if __name__ == '__main__':
+    unittest.main()
