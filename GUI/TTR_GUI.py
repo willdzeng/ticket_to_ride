@@ -2,6 +2,8 @@ from game.classes import *
 import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
 import numpy as np
+from game.board import create_board
+
 
 #cities = dict()
 
@@ -10,7 +12,7 @@ import numpy as np
 #y = [] 
 
 class GUI():
-
+    colors = []
     cities = dict()
     x = []
     y = [] 
@@ -53,6 +55,19 @@ class GUI():
                        "Winnipeg": [ 540.9, 118.8 ]
                    }
 
+    def setColors(self):
+        #self.colors={'Red':'#185aa9',
+        #             'Orange':'#185aa9', 
+        #             'Blue':'AA3939',
+        #             'Yellow':'#185aa9',
+        #             'Green':'#185aa9',
+        #             'Pink':'#185aa9',
+        #             'Black':'#185aa9',
+        #             'White':'#185aa9',
+        #             'None':'#185aa9',
+        #         }
+        self.colors=['#b61c16','#bc5510','#1033bc','#d8c413','#13750a','#6c0a75','#030203','#ebeaeb','#6d696d']
+                     
     def plot_board(self):
         for city in self.cities:
             self.x.append(self.cities[city][0])
@@ -63,10 +78,21 @@ if __name__ == '__main__':
     gui = GUI()
     img=mpimg.imread('world2.png')
     imgplot = plt.imshow(img)
-    plt.show()
     gui.place_cities()
     gui.plot_board()
+    gui.setColors()
     plt.plot(gui.x,gui.y,'ro')
+    [city_edges,edges] = create_board()
+    
+    for edge in edges:
+        x_1 = []
+        y_1 = []
+        x_1.append(gui.cities[edge.city1][0])
+        y_1.append(gui.cities[edge.city1][1])
+        x_1.append(gui.cities[edge.city2][0])
+        y_1.append(gui.cities[edge.city2][1])
+        plt.plot(x_1,y_1,gui.colors[edge.color])
+
     plt.show()
 
 
