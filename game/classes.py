@@ -1,4 +1,4 @@
-import collections
+from collections import namedtuple, Counter
 
 
 class Colors:
@@ -21,7 +21,7 @@ class Colors:
         return Colors.colors_list[color] if len(Colors.colors_list) > color else 'Wild'
 
 
-class Edge(collections.namedtuple("Edge", "city1 city2 cost color")):
+class Edge(namedtuple("Edge", "city1 city2 cost color")):
     def __new__(cls, city1, city2, cost, color):
         return tuple.__new__(cls, (city1, city2, cost, color))
 
@@ -42,7 +42,7 @@ class Edge(collections.namedtuple("Edge", "city1 city2 cost color")):
         return "(%s, %s, %s, %s)" % (str(self.city1), str(self.city2), str(self.cost), Colors.str(self.color))
 
 
-class Destination(collections.namedtuple("Destination", "city1 city2 value")):
+class Destination(namedtuple("Destination", "city1 city2 value")):
     def __new__(cls, city1, city2, value):
         return tuple.__new__(cls, (city1, city2, value))
 
@@ -55,30 +55,23 @@ class Destination(collections.namedtuple("Destination", "city1 city2 value")):
 
 class Hand:
     def __init__(self, cards):
-        self.cards = cards
+        self.cards = Counter(cards)
 
     def add_card(self, card):
-        self.cards.append(card)
+        self.cards[card] += 1
 
     def remove_card(self, card):
-        if card in self.cards:
-            self.cards.remove(card)
+        self.cards[card] = max(self.cards[card] - 1, 0)
 
     def contains_cards(self, cards):
-        # Duplicate the cards.
-        hand_clone = list(self.cards)
-
-        # Figure out which cards are in the hand, by removing them one at a time from the clone of the current hand.
         for card in cards:
-            if card in hand_clone:
-                hand_clone.remove(card)
-            else:
+            if self.cards[card] - cards[card] < 0:
                 return False
 
         return True
 
     def __str__(self):
-        return "(" + ", ".join(map(Colors.str_card, self.cards)) + ")"
+        return "(" + ", ".join(map(Colors.str_card, [card for card in self.cards.elements()])) + ")"
 
 
 class Player:
@@ -105,4 +98,4 @@ class PlayerInfo:
                "Hand: %s\n" \
                "Cars Remaining: %s\n" \
                "Destinations: [%s]\n}" % (str(self.score), str(self.hand), str(self.num_cars),
-                                        ", ".join(map(str, self.destinations)))
+                                          ", ".join(map(str, self.destinations)))

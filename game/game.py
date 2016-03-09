@@ -170,17 +170,13 @@ class Game:
     @staticmethod
     def cards_match(edge, cards):
         """
-        Determine if a given list of cards match what the edge requires. Cards can be of the same color or have no
+        Determine if a given counter of cards match what the edge requires. Cards can be of the same color or have no
         color.
 
         :param edge: The edge to check.
-        :param cards: The cards to check.
+        :param cards: The cards to check as a Counter.
         :return: True if the cards are acceptable, False otherwise.
         """
-        # Make sure there are the right number of cards.
-        if len(cards) != edge.cost:
-            return False
-
         # Figure out which color the cards need to match.  Since "None" is the highest possible color,
         # use the minimum of the list.
         if edge.color == Colors.none:
@@ -188,12 +184,8 @@ class Game:
         else:
             color_to_match = edge.color
 
-        # Check the cards.
-        for card in cards:
-            if card != color_to_match and card != Colors.none:
-                return False
-
-        return True
+        # Check the cards.  Both checks are necessary to avoid glitches if taking a gray edge with all wilds.
+        return sum(cards.values()) == edge.cost and cards[Colors.none] + cards[color_to_match] == edge.cost
 
     def draw_face_up_card(self, player, card_index):
         """
@@ -337,11 +329,11 @@ class Game:
         Remove cards from a player's hand.  If the cards aren't in the player's hand, then those cards aren't affected.
 
         :param player: The player whose cards to remove.
-        :param cards: The cards to remove.
+        :param cards: The cards to remove as a Counter.
         """
         hand = self._player_info[player].hand
 
-        for card in cards:
+        for card in cards.elements():
             hand.remove_card(card)
 
             self._discards.append(card)
