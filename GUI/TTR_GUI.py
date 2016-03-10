@@ -91,7 +91,8 @@ if __name__ == '__main__':
         y_1.append(gui.cities[edge.city1][1])
         x_1.append(gui.cities[edge.city2][0])
         y_1.append(gui.cities[edge.city2][1])
-        plt.plot(x_1,y_1,gui.colors[edge.color])
+        l1=plt.plot(x_1,y_1,gui.colors[edge.color])
+        plt.setp(l1, linewidth=2)
 
     plt.show()
 
