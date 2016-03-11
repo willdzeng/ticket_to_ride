@@ -1,16 +1,27 @@
+from random import randrange
 from time import sleep
 
-from game import Player
+from game import Player, FailureCause
 
 
 class RandomAI(Player):
-    # TODO: Test.
     def take_turn(self, game):
-        print game.get_player_info(self).hand
-        game.draw_from_deck(self)
+        actions = game.get_available_actions(self)
 
-        sleep(.5)
+        action_to_perform = actions[randrange(0, len(actions))]
 
-    # TODO: Test.
+        print "Player %s: %s" % (self.name, game.get_player_info(self))
+
+        print "%s" % action_to_perform
+
+        action_result = game.perform_action(self, action_to_perform)
+
+        if not action_result[0]:
+            raise Exception("Failure", FailureCause.str(game.perform_action(self, action_to_perform)[1]))
+
+        print "\n"
+
+        sleep(.2)
+
     def game_ended(self, game):
         pass

@@ -250,27 +250,27 @@ class TestGame(unittest.TestCase):
         cards2 = Counter({Colors.green: 4})
         edge = Edge("A", "B", color=Colors.red, cost=4)
 
-        self.assertTrue(Game.cards_match(edge, cards1))
-        self.assertFalse(Game.cards_match(edge, cards2))
+        self.assertTrue(Game.cards_match_exact(edge, cards1))
+        self.assertFalse(Game.cards_match_exact(edge, cards2))
 
         edge = Edge("A", "B", color=Colors.red, cost=5)
-        self.assertFalse(Game.cards_match(edge, cards1))
+        self.assertFalse(Game.cards_match_exact(edge, cards1))
 
     def test_cards_match_wild(self):
         cards1 = Counter([Colors.red] * 2 + [Colors.none] * 2)
         cards2 = Counter([Colors.green] * 4)
         edge = Edge("A", "B", color=Colors.red, cost=4)
 
-        self.assertTrue(Game.cards_match(edge, cards1))
-        self.assertFalse(Game.cards_match(edge, cards2))
+        self.assertTrue(Game.cards_match_exact(edge, cards1))
+        self.assertFalse(Game.cards_match_exact(edge, cards2))
 
     def test_cards_match_none(self):
         cards1 = Counter([Colors.red] * 4)
         cards2 = Counter([Colors.green] * 4)
         edge = Edge("A", "B", color=Colors.none, cost=4)
 
-        self.assertTrue(Game.cards_match(edge, cards1))
-        self.assertTrue(Game.cards_match(edge, cards2))
+        self.assertTrue(Game.cards_match_exact(edge, cards1))
+        self.assertTrue(Game.cards_match_exact(edge, cards2))
 
     def test_connect_cities(self):
         old_info = self.game.get_player_info(self.player1)

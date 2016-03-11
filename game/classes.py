@@ -21,6 +21,21 @@ class Colors:
         return Colors.colors_list[color] if len(Colors.colors_list) > color else 'Wild'
 
 
+class FailureCause:
+    def __init__(self):
+        pass
+
+    none, no_route, wrong_turn, missing_cards, incompatible_cards, already_drew, invalid_card_index, \
+        insufficient_cars, game_over, deck_out_of_cards, no_action = range(11)
+
+    cause_list = ['None', 'No Route', "Wrong Turn", "Missing Cards", "Incompatible Cards", "Already Drew",
+                  "Invalid Card Index", "Insufficient Cards", "Game Over", "Deck out of Cards", "No Action"]
+
+    @staticmethod
+    def str(failure_cause):
+        return FailureCause.cause_list[failure_cause] if len(FailureCause.cause_list) > failure_cause else "Unknown"
+
+
 class Edge(namedtuple("Edge", "city1 city2 cost color")):
     def __new__(cls, city1, city2, cost, color):
         return tuple.__new__(cls, (city1, city2, cost, color))
@@ -71,7 +86,11 @@ class Hand:
         return True
 
     def __str__(self):
-        return "(" + ", ".join(map(Colors.str_card, [card for card in self.cards.elements()])) + ")"
+        return Hand.cards_str(self.cards)
+
+    @staticmethod
+    def cards_str(cards):
+        return "(%s)" % ", ".join(map(Colors.str_card, [card for card in cards.elements()]))
 
 
 class PlayerInfo:
@@ -82,8 +101,8 @@ class PlayerInfo:
         self.num_cars = num_cars
 
     def __str__(self):
-        return "{Private Score: %s\n" \
-               "Hand: %s\n" \
-               "Cars Remaining: %s\n" \
-               "Destinations: [%s]\n}" % (str(self.score), str(self.hand), str(self.num_cars),
-                                          ", ".join(map(str, self.destinations)))
+        return "{\n\tPrivate Score: %s\n" \
+               "\tHand: %s\n" \
+               "\tCars Remaining: %s\n" \
+               "\tDestinations: [%s]\n}" % (str(self.score), str(self.hand), str(self.num_cars),
+                                        ", ".join(map(str, self.destinations)))

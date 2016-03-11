@@ -1,19 +1,13 @@
+from collections import Counter
 from copy import deepcopy
 import operator
 from random import shuffle
 
 from board import create_board, get_scoring
 from cards import init_decks
-from classes import Colors, Hand, PlayerInfo
+from classes import Colors, Hand, PlayerInfo, FailureCause
 from methods import connected
-
-
-class FailureCause:
-    def __init__(self):
-        pass
-
-    none, no_route, wrong_turn, missing_cards, incompatible_cards, already_drew, deck_empty, invalid_card_index, \
-        insufficient_cars, game_over, deck_out_of_cards = range(11)
+from actions import *
 
 
 class Game:
@@ -80,6 +74,9 @@ class Game:
         # Create the sets for events that will trigger when the game ends or begins.
         self._turn_ended_events = set()
         self._game_ended_events = set()
+
+        # Store the last actions taken.
+        self._last_actions = []
 
     def get_scoring(self):
         """
@@ -183,7 +180,7 @@ class Game:
         return self._player_info[player].hand.contains_cards(cards)
 
     @staticmethod
-    def cards_match(edge, cards):
+    def cards_match_exact(edge, cards):
         """
         Determine if a given counter of cards match what the edge requires. Cards can be of the same color or have no
         color.
@@ -192,15 +189,22 @@ class Game:
         :param cards: The cards to check as a Counter.
         :return: True if the cards are acceptable, False otherwise.
         """
-        # Figure out which color the cards need to match.  Since "None" is the highest possible color,
-        # use the minimum of the list.
-        if edge.color == Colors.none:
-            color_to_match = min(cards)
-        else:
-            color_to_match = edge.color
+        # Remove non-zero elements.
+        cards += Counter()
 
-        # Check the cards.  Both checks are necessary to avoid glitches if taking a gray edge with all wilds.
-        return sum(cards.values()) == edge.cost and cards[Colors.none] + cards[color_to_match] == edge.cost
+        # Make sure there are at most 2 colors.
+        if len(cards.items()) > 2:
+            return False
+        # Make sure that if there are 2 colors, then one is wild.
+        elif len(cards.items()) == 2 and cards[Colors.none] == 0:
+            return False
+
+        if edge.color == Colors.none:
+            # Since there are the right number of cards and at most 1 non-wild color, that's all we need to check.
+            return sum(cards.values()) == edge.cost
+        else:
+            # Make sure that there are the right number of cards.
+            return cards[edge.color] + cards[Colors.none] == edge.cost and sum(cards.values()) == edge.cost
 
     def draw_face_up_card(self, player, card_index):
         """
@@ -240,6 +244,12 @@ class Game:
         # Replace face up card.
         self._face_up_cards[card_index] = self._deck.pop()
 
+        # Update last action
+        if self._num_actions_remaining == 2:
+            self._last_actions = []
+
+        self._last_actions += [DrawFaceUpAction(card_index, card)]
+
         # Complete action.
         self._use_actions(1 if card != Colors.none else 2)
 
@@ -271,6 +281,12 @@ class Game:
         hand = self._player_info[player].hand
 
         hand.add_card(self._deck.pop())
+
+        # Update last actions.
+        if self._num_actions_remaining == 2:
+            self._last_actions = []
+
+        self._last_actions += [DrawDeckAction()]
 
         self._use_actions(1)
 
@@ -312,7 +328,7 @@ class Game:
                     return False, FailureCause.missing_cards
 
                 # Cards must match the edge's requirements.
-                if not self.cards_match(edge, cards):
+                if not self.cards_match_exact(edge, cards):
                     return False, FailureCause.incompatible_cards
 
                 # Player must have enough cars.
@@ -335,9 +351,111 @@ class Game:
                 # End turn.
                 self._use_actions(2)
 
+                # Update last action.
+                self._last_actions = [ConnectAction(city1, city2, edge_color, cards)]
+
                 return True, FailureCause.none
 
         return False, FailureCause.no_route
+
+    def get_available_actions(self, player):
+        """
+        Gets all available actions for a player.
+        :param player: The player to check.
+        :return: A list of actions that a player can perform.
+        """
+        # Make sure that it is this player's turn.
+        if not self.is_turn(player):
+            return []
+
+        result = [DrawDeckAction()]
+
+        if self._num_actions_remaining > 1:
+            # Add the ability to draw any face up cards.
+            result += [DrawFaceUpAction(i, self._face_up_cards[i]) for i in range(5)]
+
+            hand = self.get_player_info(player).hand
+
+            # Add the ability to connect any connectible cities.
+            for edge in self._edge_claims:
+                if self._edge_claims[edge] is None:
+                    result += self._all_connection_actions(edge, hand.cards)
+
+        else:
+            # If only one action remains, then only allow non-wild face-up draws.
+            for i in range(len(self._face_up_cards)):
+                if self._face_up_cards[i] != Colors.none:
+                    result += [DrawFaceUpAction(i, self._face_up_cards[i])]
+
+        return result
+
+    def perform_action(self, player, action):
+        """
+        Perform an action using an action representation.
+
+        :param player: The player.
+        :param action: The action.
+        :return: The result of performing the action.
+        """
+        result = (False, FailureCause.no_action)
+        if action.is_draw_deck():
+            result = self.draw_from_deck(player)
+        elif action.is_draw_face_up():
+            result = self.draw_face_up_card(player, action.index)
+        elif action.is_connect():
+            result = self.connect_cities(player, action.city1, action.city2, action.edge_color, action.cards)
+
+        return result
+
+    def get_last_actions(self):
+        """
+        Gets the actions performed last turn, or at the beginning of this turn.
+        :return: A list of actions.
+        """
+        return deepcopy(self._last_actions)
+
+    @staticmethod
+    def _all_connection_actions(edge, cards):
+        """
+        Gets all available connection actions available given a certain set of cards for a certain edge.
+        :param edge: The edge to check.
+        :param cards: The hand to check the edge against.
+        :return: A list off all possible actions that can be performed with the given hand on the given edge.
+        """
+        result = []
+
+        # A short circuit in case there definitely can't be enough cards.
+        if edge.cost > cards.most_common(1)[0][1] + cards[Colors.none]:
+            return result
+
+        # Route has no color.
+        if edge.color == Colors.none:
+            for card in cards:
+                if card != Colors.none and cards[card] + cards[Colors.none] >= edge.cost:
+                    # Find all possible combinations of cards that can be used to claim the edge.
+                    # Using min(edge.cost - 1) guarantees that we will not accidentally add unnecessary plays that
+                    # use all wilds.
+                    for i in range(min(edge.cost - 1, cards[Colors.none] + 1)):
+                        if cards[card] >= edge.cost - i:
+                            result.append(ConnectAction(edge.city1, edge.city2, edge.color,
+                                                        Counter({card: edge.cost - i, Colors.none: i})))
+        # Route has a color.
+        else:
+            if cards[edge.color] + cards[Colors.none] >= edge.cost:
+                # Find all possible combinations of cards that can be used to claim the edge.
+                # Using min(edge.cost - 1) guarantees that we will not accidentally add unnecessary plays that
+                # use all wilds.
+                for i in range(min(edge.cost - 1, cards[Colors.none] + 1)):
+                    if cards[edge.color] >= edge.cost - i:
+                        result.append(ConnectAction(edge.city1, edge.city2, edge.color,
+                                                    Counter({edge.color: edge.cost - i, Colors.none: i})))
+
+        # If player has enough wilds to just get the route on wilds.
+        if cards[Colors.none] >= edge.cost:
+            result.append(ConnectAction(edge.city1, edge.city2, edge.color,
+                                        Counter({Colors.none: edge.cost})))
+
+        return result
 
     def _lose_cards(self, player, cards):
         """
