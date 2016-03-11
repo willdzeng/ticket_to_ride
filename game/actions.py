@@ -31,6 +31,7 @@ class DrawFaceUpAction(Action):
     def __init__(self, index, card):
         Action.__init__(self)
         self.index = index
+        # Card color is more for convenience.  Not actually used when determining the action.
         self.card = card
 
     def is_draw_face_up(self):

@@ -4,7 +4,7 @@ from game import Game
 
 p1 = RandomAI("P1")
 # p2 = Player("P2")
-p2 = RandomAI("P3")
+p2 = RandomAI("P2")
 
 players = [p1, p2]
 
@@ -19,8 +19,7 @@ while not game.is_game_over()[0]:
             game_gui.update(game)
             break
 
-# Game's over
-
+# Game's over.  Tell the players and print out some results.
 for player in players:
     player.game_ended(game)
 
