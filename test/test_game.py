@@ -1,6 +1,7 @@
 import unittest
 from game import Game
 from game.classes import *
+from game.player import Player
 from game.board import create_city_edges
 from game.game import FailureCause
 from game.methods import connected

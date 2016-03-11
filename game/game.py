@@ -77,6 +77,10 @@ class Game:
 
         self._discards = []
 
+        # Create the sets for events that will trigger when the game ends or begins.
+        self._turn_ended_events = set()
+        self._game_ended_events = set()
+
     def get_scoring(self):
         """
         :return: The scoring dictionary.
@@ -111,6 +115,17 @@ class Game:
         :return: A dictionary of all opponents by name and their scores.
         """
         return dict(self._visible_scores)
+
+    def get_remaining_actions(self, player):
+        """
+        Get the remaining actions for a player this turn.
+        :param player:
+        :return: The number of actions or 0 if it is the wrong turn.
+        """
+        if self.is_turn(player):
+            return self._num_actions_remaining
+        else:
+            return 0
 
     def cards_in_deck(self):
         """
@@ -390,6 +405,10 @@ class Game:
 
         # Update visible scores to final values.
         self._visible_scores = {player.name: self._player_info[player].score for player in self._players}
+
+        # Trigger all events for when the game ends.
+        for event in self._game_ended_events:
+            event(self)
 
     def _check_deck(self):
         """

@@ -74,18 +74,6 @@ class Hand:
         return "(" + ", ".join(map(Colors.str_card, [card for card in self.cards.elements()])) + ")"
 
 
-class Player:
-    """
-    A player.  This is more a token to identify a player than anything else, since it contains no information.
-    """
-
-    def __init__(self, name):
-        self.name = name
-
-    def __str__(self):
-        return self.name
-
-
 class PlayerInfo:
     def __init__(self, hand, destinations, num_cars, score=0):
         self.score = score
