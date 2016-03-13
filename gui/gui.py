@@ -12,16 +12,27 @@ from game.board import create_board
 # x = []
 # y = []
 
+
+
 class GUI:
     def __init__(self):
+
+        print('initializing gui')
+
         img = mpimg.imread('../gui/world2.png')
+        plt.ion()  #uncomment to let go of string
+        plt.figure() #uncomment to let go of string
         imgplot = plt.imshow(img)
+
+        #imgplot = plt.imdraw(img)
         self.place_cities()
         self.plot_board()
         self.set_colors()
         plt.plot(self.x, self.y, 'ro')
         [city_edges, edges] = create_board()
 
+
+        #Plot the edges for connecting cities
         for edge in edges:
             x_1 = []
             y_1 = []
@@ -32,12 +43,49 @@ class GUI:
             l1 = plt.plot(x_1, y_1, self.colors[edge.color])
             plt.setp(l1, linewidth=2)
 
-        plt.show()
+            #Plot the numbers of cards player 1 and 2 have
+
+            #First for player 1
+        x = 705
+        y = 60
+        i = 0
+        for i in range(9):
+
+            print(str(i))
+            self.player_1_cards[str(i)] = plt.text(x, y, '0', fontdict=None)
+            x = x+ 39
+
+            #Next for player 2
+        x = 705
+        y = 130
+        i = 0
+        for i in range(9):
+            self.player_2_cards[str(i)] = plt.text(x, y, '0', fontdict=None)
+            x = x+ 39
+
+
+
+ #           iter_pos_x = iter(self.cards_pos_x)
+ #           last_pos_x = self.cards_pos_x[0]
+ #           inc = 30
+ #           next(iter_pos_x)
+ #           i=1
+ #           for pos_x in iter_pos_x:
+ #               self.cards_pos_x[i] = last_pos_x + inc
+ #               last_pos_x = pos_x
+                #print(pos_x)
+ #               i=i+1
+ #               print(self.cards_pos_x)
+        plt.draw()
 
     colors = []
     cities = dict()
     x = []
     y = []
+#cards_pos_x =[ 700 ,0 , 0 ,0 ,0 ,0 ,0 ,0 ,0, 0 ]
+#    cards_pos_y = [ 100, 130]
+    player_1_cards = dict()
+    player_2_cards = dict()
 
     def place_cities(self):
         self.cities = {"Atlanta": [775, 516],
@@ -93,13 +141,48 @@ class GUI:
                        '#6d696d']
 
     def plot_board(self):
+
+        
+        
         for city in self.cities:
             self.x.append(self.cities[city][0])
             self.y.append(self.cities[city][1])
 
     def update(self, game):
         # TODO: Implement.
+        self.update_displayed_cards(game)
+        #current_game_state = get_player_info(game)
+        plt.draw()
         pass
+
+
+
+    #current_game_state.in_hands
+
+    def update_displayed_cards(self,game):
+        for player in game._players:
+            print(player.name)
+            #print('here')
+            #print(game.get_player_info(player).hand.cards)
+            cards = game.get_player_info(player).hand.cards
+            for card in cards:
+                print('here 1')
+                print(card)
+                print(cards[card])
+                if(player.name == 'P1'):
+                    self.player_1_cards[str(card)].set_text(str(cards[card]))
+                elif(player.name == 'P2'):
+                    self.player_2_cards[str(card)].set_text(str(cards[card]))
+
+                #print(card_value)
+                #print(game.get_player_info(player).hand.cards{card})
+                #i=i+1
+
+                #print(self.cards_pos_x[int(card)])
+                #print(self.cards_pos_y[j])
+
+               # plt.text(self.cards_pos_x[int(card)], self.cards_pos_y[j], str(cards[card]), fontdict=None)
+
 
     def update_game_ended(self, game):
         # TODO: Implement.

@@ -24,7 +24,7 @@ class RandomAI(Player):
         print "\n"
 
         # Pause for pacing.
-        sleep(.2)
+        sleep(0.2)
 
     def game_ended(self, game):
         pass
