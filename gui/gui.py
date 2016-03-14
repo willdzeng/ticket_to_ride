@@ -48,6 +48,7 @@ class GUI:
 
             self.edge_weights[edge] =plt.plot(x_mean,y_mean,'go')
             plt.setp(self.edge_weights[edge],'ms',10.0)
+            plt.text(x_mean-7,y_mean+7,str(edge.cost),fontdict=None)
             #Plot the numbers of cards player 1 and 2 have
 
             #First for player 1
