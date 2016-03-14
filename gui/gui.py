@@ -53,21 +53,21 @@ class GUI:
 
             #First for player 1
         x = 705
-        y = 60
+        y = 33
         i = 0
         for i in range(9):
 
             print(str(i))
             self.player_1_cards[str(i)] = plt.text(x, y, '0', fontdict=None)
-            x = x+ 39
+            x = x+ 22
 
             #Next for player 2
         x = 705
-        y = 130
+        y = 103
         i = 0
         for i in range(9):
             self.player_2_cards[str(i)] = plt.text(x, y, '0', fontdict=None)
-            x = x+ 39
+            x = x+ 22
 
 
 
@@ -83,7 +83,7 @@ class GUI:
  #               i=i+1
  #               print(self.cards_pos_x)
         plt.draw()
-
+       # plt.show()
     colors = []
     cities = dict()
     x = []
@@ -203,6 +203,8 @@ class GUI:
 
 
     def update_game_ended(self, game):
+        self.update(game)
+        plt.ioff()
         plt.show()
         # TODO: Implement.
         pass
