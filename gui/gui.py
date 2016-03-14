@@ -23,6 +23,11 @@ class GUI:
         plt.ion()  #uncomment to let go of string
         plt.figure() #uncomment to let go of string
         imgplot = plt.imshow(img)
+        plt.xlim([0,1080])
+        plt.ylim([700,0])
+        imgplot.axes.get_xaxis().set_visible(False)
+        imgplot.axes.get_yaxis().set_visible(False)
+
 
         #imgplot = plt.imdraw(img)
         self.place_cities()
@@ -51,48 +56,41 @@ class GUI:
             plt.text(x_mean-7,y_mean+7,str(edge.cost),fontdict=None)
             #Plot the numbers of cards player 1 and 2 have
 
-            #First for player 1
+        #First for player 1
         x = 705
         y = 33
         i = 0
         for i in range(9):
-
-            print(str(i))
             self.player_1_cards[str(i)] = plt.text(x, y, '0', fontdict=None)
             x = x+ 22
+        self.p1_score = plt.text(x+77,y,'0',fontdict=None)
+        self.p1_cars = plt.text(x+22,y,'0',fontdict=None)
 
-            #Next for player 2
+        #Next for player 2
         x = 705
         y = 103
         i = 0
         for i in range(9):
             self.player_2_cards[str(i)] = plt.text(x, y, '0', fontdict=None)
             x = x+ 22
+        self.p2_score = plt.text(x+77,y,'0',fontdict=None)
+        self.p2_cars = plt.text(x+22,y,'0',fontdict=None)
 
-
-
- #           iter_pos_x = iter(self.cards_pos_x)
- #           last_pos_x = self.cards_pos_x[0]
- #           inc = 30
- #           next(iter_pos_x)
- #           i=1
- #           for pos_x in iter_pos_x:
- #               self.cards_pos_x[i] = last_pos_x + inc
- #               last_pos_x = pos_x
-                #print(pos_x)
- #               i=i+1
- #               print(self.cards_pos_x)
         plt.draw()
        # plt.show()
     colors = []
     cities = dict()
     x = []
     y = []
-#cards_pos_x =[ 700 ,0 , 0 ,0 ,0 ,0 ,0 ,0 ,0, 0 ]
-#    cards_pos_y = [ 100, 130]
     player_1_cards = dict()
     player_2_cards = dict()
     edge_weights = dict()
+    cards = dict()
+    p1_score=[]
+    p2_score=[]
+    p1_cars=[]
+    p2_cars=[]
+
 
 
     def place_cities(self):
@@ -135,55 +133,44 @@ class GUI:
                        }
 
     def set_colors(self):
-        # self.colors={'Red':'#185aa9',
-        #             'Orange':'#185aa9', 
-        #             'Blue':'AA3939',
-        #             'Yellow':'#185aa9',
-        #             'Green':'#185aa9',
-        #             'Pink':'#185aa9',
-        #             'Black':'#185aa9',
-        #             'White':'#185aa9',
-        #             'None':'#185aa9',
-        #         }
         self.colors = ['#b61c16', '#bc5510', '#1033bc', '#d8c413', '#13750a', '#6c0a75', '#030203', '#ebeaeb',
                        '#6d696d']
 
     def plot_board(self):
-
-        
-        
         for city in self.cities:
             self.x.append(self.cities[city][0])
             self.y.append(self.cities[city][1])
 
     def update(self, game):
         # TODO: Implement.
-        self.update_displayed_cards(game)
-        #current_game_state = get_player_info(game)
+        self.update_display(game)
+        self.update_edges(game)
+        self.update_cards(game)
         plt.draw()
         pass
 
+    def update_cards(self,game):
+        pass
 
+    def update_display(self,game):
+        scores = game.get_visible_scores()
 
-    #current_game_state.in_hands
-
-    def update_displayed_cards(self,game):
+        print scores
         for player in game._players:
-            #print(player.name)
-            #print('here')
-            #print(game.get_player_info(player).hand.cards)
             cards = game.get_player_info(player).hand.cards
             for card in cards:
-                #print('here 1')
-                #print(card)
-                #print(cards[card])
                 if(player.name == 'P1'):
                     self.player_1_cards[str(card)].set_text(str(cards[card]))
+                    self.p1_score.set_text(str(scores[player.name]))
+                    self.p1_cars.set_text(str(game.get_player_info(player).num_cars))
                 elif(player.name == 'P2'):
                     self.player_2_cards[str(card)].set_text(str(cards[card]))
+                    self.p2_score.set_text(str(scores[player.name]))
+                    self.p2_cars.set_text(str(game.get_player_info(player).num_cars))
 
+
+    def update_edges(self,game):
         edges = game.get_edge_claims()
-
         for edge in edges:
             #print(edge)
             #print(edges[edge])
