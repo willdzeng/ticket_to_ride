@@ -43,6 +43,11 @@ class GUI:
             l1 = plt.plot(x_1, y_1, self.colors[edge.color])
             plt.setp(l1, linewidth=2)
 
+            x_mean = (x_1[0] +x_1[1])/2
+            y_mean = (y_1[0] +y_1[1])/2
+
+            self.edge_weights[edge] =plt.plot(x_mean,y_mean,'go')
+            plt.setp(self.edge_weights[edge],'ms',10.0)
             #Plot the numbers of cards player 1 and 2 have
 
             #First for player 1
@@ -86,6 +91,8 @@ class GUI:
 #    cards_pos_y = [ 100, 130]
     player_1_cards = dict()
     player_2_cards = dict()
+    edge_weights = dict()
+
 
     def place_cities(self):
         self.cities = {"Atlanta": [775, 516],
@@ -161,18 +168,28 @@ class GUI:
 
     def update_displayed_cards(self,game):
         for player in game._players:
-            print(player.name)
+            #print(player.name)
             #print('here')
             #print(game.get_player_info(player).hand.cards)
             cards = game.get_player_info(player).hand.cards
             for card in cards:
-                print('here 1')
-                print(card)
-                print(cards[card])
+                #print('here 1')
+                #print(card)
+                #print(cards[card])
                 if(player.name == 'P1'):
                     self.player_1_cards[str(card)].set_text(str(cards[card]))
                 elif(player.name == 'P2'):
                     self.player_2_cards[str(card)].set_text(str(cards[card]))
+
+        edges = game.get_edge_claims()
+
+        for edge in edges:
+            #print(edge)
+            #print(edges[edge])
+            if(edges[edge] == 'P1'):
+                plt.setp(self.edge_weights[edge],'color','b')
+            elif(edges[edge] == 'P2'):
+                plt.setp(self.edge_weights[edge],'color','r')
 
                 #print(card_value)
                 #print(game.get_player_info(player).hand.cards{card})
@@ -185,6 +202,7 @@ class GUI:
 
 
     def update_game_ended(self, game):
+        plt.show()
         # TODO: Implement.
         pass
 
