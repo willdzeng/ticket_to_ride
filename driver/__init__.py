@@ -26,3 +26,4 @@ for player in players:
 print "Game Over"
 print "Winner: %s" % game.is_game_over()[1]
 print "Final Scores: %s" % game.get_visible_scores()
+game_gui.update_game_ended(game)
