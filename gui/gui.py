@@ -21,7 +21,7 @@ class GUI:
 
         img = mpimg.imread('../gui/world2.png')
         plt.ion()  #uncomment to let go of string
-        fig = plt.figure() #uncomment to let go of string
+        self.fig = plt.figure() #uncomment to let go of string
         imgplot = plt.imshow(img)
         plt.xlim([0,1080])
         plt.ylim([700,0])
@@ -97,16 +97,23 @@ class GUI:
         #self.cards['Wild'] = mpimg.imread('../gui/wild.png')
 
         i=0
-        x = 1045
-        y = 50
-        for i in range(4):
-            self.table_card_slots.append(fig.add_axes([x, y+22*i, 11, 22]))
-
-
-
-
+        x = 0.858
+        y = 0.78
+        for i in range(5):
+            self.table_card_slots.append(self.fig.add_axes([x, y - 0.020*i, 0.034,0.016],'auto_scale_on'))
+            self.table_card_slots[i].get_xaxis().set_visible(False)
+            self.table_card_slots[i].get_yaxis().set_visible(False)
         plt.draw()
-       # plt.show()
+     #   self.table_card_slots[0].imshow(self.cards[str('8')])
+     #   self.table_card_slots[1].imshow(self.cards[str('8')])
+     #   self.table_card_slots[2].imshow(self.cards[str('8')])
+     #   self.table_card_slots[3].imshow(self.cards[str('8')])
+     #   self.table_card_slots[4].imshow(self.cards[str('8')])
+
+
+
+
+        #plt.show()
     colors = []
     cities = dict()
     x = []
@@ -120,7 +127,7 @@ class GUI:
     p2_score=[]
     p1_cars=[]
     p2_cars=[]
-
+    fig = []
 
 
     def place_cities(self):
@@ -175,13 +182,13 @@ class GUI:
         # TODO: Implement.
         self.update_display(game)
         self.update_edges(game)
-        #self.update_cards(game)
+        self.update_cards(game)
         plt.draw()
         pass
 
     def update_cards(self,game):
             face_up_cards = game.get_face_up_cards()
-            i=0;
+            i=0
             for card_key in face_up_cards:
                 print(str(card_key))
                 if(i < len(self.table_card_slots)):
