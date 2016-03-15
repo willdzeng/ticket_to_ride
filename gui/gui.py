@@ -21,7 +21,7 @@ class GUI:
 
         img = mpimg.imread('../gui/world2.png')
         plt.ion()  #uncomment to let go of string
-        plt.figure() #uncomment to let go of string
+        fig = plt.figure() #uncomment to let go of string
         imgplot = plt.imshow(img)
         plt.xlim([0,1080])
         plt.ylim([700,0])
@@ -76,6 +76,35 @@ class GUI:
         self.p2_score = plt.text(x+77,y,'0',fontdict=None)
         self.p2_cars = plt.text(x+22,y,'0',fontdict=None)
 
+        self.cards['0'] = mpimg.imread('../gui/red.png')
+        self.cards['1'] = mpimg.imread('../gui/orange.png')
+        self.cards['2'] = mpimg.imread('../gui/blue.png')
+        self.cards['3'] = mpimg.imread('../gui/yellow.png')
+        self.cards['4'] = mpimg.imread('../gui/green.png')
+        self.cards['5'] = mpimg.imread('../gui/pink.png')
+        self.cards['6'] = mpimg.imread('../gui/black.png')
+        self.cards['7'] = mpimg.imread('../gui/white.png')
+        self.cards['8'] = mpimg.imread('../gui/wild.png')
+
+        #self.cards['Red'] = mpimg.imread('../gui/red.png')
+        #self.cards['Orange'] = mpimg.imread('../gui/orange.png')
+        #self.cards['Blue'] = mpimg.imread('../gui/blue.png')
+        #self.cards['Yellow'] = mpimg.imread('../gui/yellow.png')
+        #self.cards['Green'] = mpimg.imread('../gui/green.png')
+        #self.cards['Pink'] = mpimg.imread('../gui/pink.png')
+        #self.cards['Black'] = mpimg.imread('../gui/black.png')
+        #self.cards['White'] = mpimg.imread('../gui/white.png')
+        #self.cards['Wild'] = mpimg.imread('../gui/wild.png')
+
+        i=0
+        x = 1045
+        y = 50
+        for i in range(4):
+            self.table_card_slots.append(fig.add_axes([x, y+22*i, 11, 22]))
+
+
+
+
         plt.draw()
        # plt.show()
     colors = []
@@ -86,6 +115,7 @@ class GUI:
     player_2_cards = dict()
     edge_weights = dict()
     cards = dict()
+    table_card_slots = list()
     p1_score=[]
     p2_score=[]
     p1_cars=[]
@@ -145,12 +175,20 @@ class GUI:
         # TODO: Implement.
         self.update_display(game)
         self.update_edges(game)
-        self.update_cards(game)
+        #self.update_cards(game)
         plt.draw()
         pass
 
     def update_cards(self,game):
-        pass
+            face_up_cards = game.get_face_up_cards()
+            i=0;
+            for card_key in face_up_cards:
+                print(str(card_key))
+                if(i < len(self.table_card_slots)):
+                    self.table_card_slots[i].imshow(self.cards[str(card_key)])
+                    i = i+1
+            
+                                              
 
     def update_display(self,game):
         scores = game.get_visible_scores()
