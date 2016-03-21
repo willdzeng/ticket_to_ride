@@ -42,16 +42,14 @@ class DrawFaceUpAction(Action):
 
 
 class ConnectAction(Action):
-    def __init__(self, city1, city2, edge_color, cards):
+    def __init__(self, edge, cards):
         Action.__init__(self)
-        self.city1 = city1
-        self.city2 = city2
-        self.edge_color = edge_color
+        self.edge = edge
         self.cards = cards
 
     def is_connect(self):
         return True
 
     def __str__(self):
-        return "Action: Connect Cities(%s, %s, %s, %s)" % \
-               (self.city1, self.city2, Colors.str(self.edge_color), Hand.cards_str(self.cards))
+        return "Action: Connect Cities(%s, %s)" % \
+               (self.edge, Hand.cards_str(self.cards))

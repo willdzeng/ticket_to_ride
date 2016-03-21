@@ -295,15 +295,12 @@ class Game:
 
         return True, FailureCause.none
 
-    def connect_cities(self, player, city1, city2, edge_color, cards):
+    def connect_cities(self, player, edge, cards):
         """
         Connect 2 cities.  It must the player's turn to call this.
 
         :param player: The player who will be performing the connection.
-        :param city1: The first city to connect.
-        :param city2: The second city to connect.
-        :param edge_color: The color of the connection.  This is important because some cities have multiple edges of
-        different colors.
+        :param edge: The edge to connect.
         :param cards: The cards from the player's hand to use when making the claim.
         :return: A tuple containing a boolean and an int.  Boolean will be True if the action succeeded,
         False otherwise.  Integer will correspond to a failure cause in the FailureCause object.
@@ -321,40 +318,39 @@ class Game:
             return False, FailureCause.already_drew
 
         # Find the edge and claim it if possible.
-        for edge in self._city_edges[city1]:
-            if edge.contains_city(city2) and not self._edge_is_claimed(edge) and edge.color == edge_color:
-                # Player must have the given cards.
-                if not self.in_hand(player, cards):
-                    return False, FailureCause.missing_cards
+        if edge in self._edges and not self._edge_is_claimed(edge):
+            # Player must have the given cards.
+            if not self.in_hand(player, cards):
+                return False, FailureCause.missing_cards
 
-                # Cards must match the edge's requirements.
-                if not self.cards_match_exact(edge, cards):
-                    return False, FailureCause.incompatible_cards
+            # Cards must match the edge's requirements.
+            if not self.cards_match_exact(edge, cards):
+                return False, FailureCause.incompatible_cards
 
-                # Player must have enough cars.
-                if self._player_info[player].num_cars < edge.cost:
-                    return False, FailureCause.insufficient_cars
+            # Player must have enough cars.
+            if self._player_info[player].num_cars < edge.cost:
+                return False, FailureCause.insufficient_cars
 
-                self._claim_edge(edge, player)
-                self._lose_cards(player, cards)
-                self._player_info[player].num_cars -= edge.cost
+            self._claim_edge(edge, player)
+            self._lose_cards(player, cards)
+            self._player_info[player].num_cars -= edge.cost
 
-                # Update score.
-                self._player_info[player].score += self._scoring[edge.cost]
-                self._visible_scores[player.name] += self._scoring[edge.cost]
-                self._check_connections(player)
+            # Update score.
+            self._player_info[player].score += self._scoring[edge.cost]
+            self._visible_scores[player.name] += self._scoring[edge.cost]
+            self._check_connections(player)
 
-                # Check if game is over.
-                if self._player_info[player].num_cars <= 3:
-                    self._end_game()
+            # Check if game is over.
+            if self._player_info[player].num_cars <= 3:
+                self._end_game()
 
-                # End turn.
-                self._use_actions(2)
+            # End turn.
+            self._use_actions(2)
 
-                # Update last action.
-                self._last_actions = [ConnectAction(city1, city2, edge_color, cards)]
+            # Update last action.
+            self._last_actions = [ConnectAction(edge, cards)]
 
-                return True, FailureCause.none
+            return True, FailureCause.none
 
         return False, FailureCause.no_route
 
@@ -403,7 +399,7 @@ class Game:
         elif action.is_draw_face_up():
             result = self.draw_face_up_card(player, action.index)
         elif action.is_connect():
-            result = self.connect_cities(player, action.city1, action.city2, action.edge_color, action.cards)
+            result = self.connect_cities(player, action.edge, action.cards)
 
         return result
 
@@ -437,8 +433,7 @@ class Game:
                     # use all wilds.
                     for i in range(min(edge.cost - 1, cards[Colors.none] + 1)):
                         if cards[card] >= edge.cost - i:
-                            result.append(ConnectAction(edge.city1, edge.city2, edge.color,
-                                                        Counter({card: edge.cost - i, Colors.none: i})))
+                            result.append(ConnectAction(edge, Counter({card: edge.cost - i, Colors.none: i})))
         # Route has a color.
         else:
             if cards[edge.color] + cards[Colors.none] >= edge.cost:
@@ -447,13 +442,11 @@ class Game:
                 # use all wilds.
                 for i in range(min(edge.cost - 1, cards[Colors.none] + 1)):
                     if cards[edge.color] >= edge.cost - i:
-                        result.append(ConnectAction(edge.city1, edge.city2, edge.color,
-                                                    Counter({edge.color: edge.cost - i, Colors.none: i})))
+                        result.append(ConnectAction(edge, Counter({edge.color: edge.cost - i, Colors.none: i})))
 
         # If player has enough wilds to just get the route on wilds.
         if cards[Colors.none] >= edge.cost:
-            result.append(ConnectAction(edge.city1, edge.city2, edge.color,
-                                        Counter({Colors.none: edge.cost})))
+            result.append(ConnectAction(edge, Counter({Colors.none: edge.cost})))
 
         return result
 

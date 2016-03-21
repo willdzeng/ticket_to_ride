@@ -275,7 +275,8 @@ class TestGame(unittest.TestCase):
     def test_connect_cities(self):
         old_info = self.game.get_player_info(self.player1)
 
-        self.assertEqual(self.game.connect_cities(self.player1, "A", "C", Colors.red, Counter([Colors.red] * 4)),
+        self.assertEqual(self.game.connect_cities(self.player1, Edge("A", "C", 4, Colors.red),
+                                                  Counter([Colors.red] * 4)),
                          (True, FailureCause.none))
         self.assertTrue(self.game.is_turn(self.player2))
         self.assertFalse(self.game.is_turn(self.player1))
@@ -295,7 +296,7 @@ class TestGame(unittest.TestCase):
     def test_connect_cities_already_drew(self):
         self.game.draw_from_deck(self.player1)
 
-        self.assertEqual(self.game.connect_cities(self.player1, "A", "C", Colors.red, [Colors.red] * 4),
+        self.assertEqual(self.game.connect_cities(self.player1, Edge("A", "C", 4, Colors.red), [Colors.red] * 4),
                          (False, FailureCause.already_drew))
 
         self.assertTrue(self.game.is_turn(self.player1))
