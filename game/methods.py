@@ -7,7 +7,8 @@ from classes import Path
 # Maximum number of iterations for finding paths.
 MAX_PATH_ITER = 1000
 
-MAX_NUM_PATH = 20
+MAX_NUM_PATH = 10
+
 
 def connected(city1, city2, city_edges, edge_claims, player):
     """
@@ -90,7 +91,7 @@ def find_paths_for_destinations(destinations, city_edges, max_cost, scoring=get_
     return sorted(all_paths, key=sort_method)
 
 
-def find_paths(city1, city2, city_edges, max_cost, scoring, player=None, edge_claims=None, ):
+def find_paths(city1, city2, city_edges, max_cost, scoring, player=None, edge_claims=None):
     """
     Find all paths that connect two cities for less than the max_cost.
 

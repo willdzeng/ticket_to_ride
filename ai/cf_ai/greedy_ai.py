@@ -6,7 +6,7 @@ from game.board import create_board
 from game.classes import FailureCause, Path
 from game.actions import DrawDeckAction
 
-
+#TODO: Only recalculate if route is taken by opponent.
 class GreedyAI(Player):
     """
     AI that plays by finding the ideal path to all destinations that is affordable and maximizes score.  It will
@@ -17,7 +17,7 @@ class GreedyAI(Player):
         Player.__init__(self, name)
         self.city_edges, edges = create_board()
 
-        self.sort_method = lambda path: path.score
+        self.sort_method = lambda path: -path.score
 
     def take_turn(self, game):
         info = game.get_player_info(self)
@@ -32,12 +32,12 @@ class GreedyAI(Player):
         if not all_paths or game.cards_in_deck() == 0:
             # Random action for now when no paths remain to check.
             # TODO: Instead of behaving randomly, try to get the edges that will get you the most points.
-            print game.cards_in_discard()
-            actions = game.get_available_actions(self)
+            actions = self.on_no_more_destinations(game)
         elif game.get_remaining_actions(self) == 1:
             # Draw from the deck if that's the only option.
-            actions = [DrawDeckAction()]
+            actions = self.on_already_drew(game)
         else:
+            # Try to take an edge.
             path = all_paths[0]
 
             actions = []
@@ -55,7 +55,7 @@ class GreedyAI(Player):
 
             # No actions, just draw randomly.
             if not actions:
-                actions = [DrawDeckAction()]
+                actions = self.on_not_enough_cards(game)
 
         # Randomly select the action from available actions.
         action_to_perform = actions[randrange(0, len(actions))]
@@ -77,3 +77,33 @@ class GreedyAI(Player):
 
     def game_ended(self, game):
         pass
+
+    def path_cost(self, path, all_paths, game):
+        return path.cost
+
+    def on_not_enough_cards(self, game):
+        """
+        Executes when there aren't enough cards to play anything.
+
+        :param game: The game object.
+        :return: The actions to perform.  Will randomly pick from the list of actions.
+        """
+        return [DrawDeckAction()]
+
+    def on_no_more_destinations(self, game):
+        """
+        Executes when there are no more destinations for the player to play.
+
+        :param game: The game object.
+        :return: The action(s) to perform.  Will randomly pick from the list of actions.
+        """
+        return game.get_available_actions(self)
+
+    def on_already_drew(self, game):
+        """
+        Executes when it's this player's turn but they already drew.
+
+        :param game: The game object.
+        :return: The actions to perform.  Will randomly pick from the list of actions.
+        """
+        return [DrawDeckAction()]

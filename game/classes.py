@@ -56,6 +56,9 @@ class Edge(namedtuple("Edge", "city1 city2 cost color")):
     def __str__(self):
         return "(%s, %s, %s, %s)" % (str(self.city1), str(self.city2), str(self.cost), Colors.str(self.color))
 
+    def __repr__(self):
+        return str(self)
+
 
 class Destination(namedtuple("Destination", "city1 city2 value")):
     def __new__(cls, city1, city2, value):
