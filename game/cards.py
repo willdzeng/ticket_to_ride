@@ -7,9 +7,6 @@ def init_decks():
     """
     Initializes all decks
     """
-    # Initialize the deck to have 12 of each color and 14 wild cards (which are just cards colored "None").
-    deck = [color for color in range(8)] * 12 + [8] * 14
-
     destinations = [
         Destination("Dallas", "New York", 11),
         Destination("Portland", "Phoenix", 11),
@@ -42,8 +39,13 @@ def init_decks():
         Destination("New York", "Atlanta", 6),
         Destination("Montreal", "New Orleans", 13)
     ]
-
-    shuffle(deck)
     shuffle(destinations)
+    deck = shuffle_deck()
 
     return deck, destinations
+
+def shuffle_deck():
+    # Initialize the deck to have 12 of each color and 14 wild cards (which are just cards colored "None").
+    deck = [color for color in range(8)] * 12 + [8] * 14
+    shuffle(deck)
+    return deck

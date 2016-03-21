@@ -4,7 +4,7 @@ import operator
 from random import shuffle
 
 from board import create_board, get_scoring
-from cards import init_decks
+from cards import init_decks, shuffle_deck
 from classes import Colors, Hand, PlayerInfo, FailureCause
 from methods import connected
 from actions import *
@@ -13,7 +13,7 @@ from actions import *
 class Game:
     starting_hand_size = 4
 
-    def __init__(self, players, custom_settings=False, city_edges=None, edges=None, deck=None, destinations=None,
+    def __init__(self, players, maximum_rounds = 5000, custom_settings=False, city_edges=None, edges=None, deck=None, destinations=None,
                  num_cars=45):
         if not custom_settings:
             self._city_edges, self._edges = create_board()
@@ -27,7 +27,8 @@ class Game:
             self._destinations = destinations
 
             self._num_cars = num_cars
-
+        self._maximum_rounds = maximum_rounds
+        self._rounds_count = 0
         self._scoring = get_scoring()
 
         self._players = players
@@ -106,6 +107,14 @@ class Game:
         :return: A dictionary of all opponents by name and their scores.
         """
         return dict(self._visible_scores)
+
+    def get_rounds_played(self):
+        """
+        see the how many rounds have played
+
+        :return: rounds play count number
+        """
+        return self._rounds_count
 
     def get_remaining_actions(self, player):
         """
@@ -223,7 +232,8 @@ class Game:
 
         # Make sure that there are cards to draw.
         if not self._deck:
-            return False, FailureCause.deck_out_of_cards
+            self._deck = shuffle_deck()
+            # return False, FailureCause.deck_out_of_cards
 
         card = self._face_up_cards[card_index]
         hand = self._player_info[player].hand
@@ -354,15 +364,16 @@ class Game:
         :param player: The player to check.
         :return: A list of actions that a player can perform.
         """
+        result = []
         # Make sure that it is this player's turn.
         if not self.is_turn(player):
-            return []
+            return result
 
         # Make sure the player has action remaining
         if self._num_actions_remaining < 1:
-            return []
+            return result
 
-        result = [DrawDeckAction()]
+        result += [DrawDeckAction()]
 
         if self._num_actions_remaining > 1:
             # Add the ability to draw any face up cards.
@@ -503,6 +514,9 @@ class Game:
 
         # Running out of actions means the turn is over.
         if self._num_actions_remaining <= 0:
+            self._rounds_count += 1
+            if self._rounds_count > self._maximum_rounds:
+                self._end_game()
             self._num_actions_remaining = 2
             self._current_player_index = (self._current_player_index + 1) % len(self._players)
 
@@ -518,6 +532,7 @@ class Game:
         # Trigger all events for when the game ends.
         for event in self._game_ended_events:
             event(self)
+        print "Rounds played: %d"%self._rounds_count
 
     def _check_deck(self):
         """
