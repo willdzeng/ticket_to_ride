@@ -1,5 +1,5 @@
 from collections import deque
-from copy import copy, deepcopy
+from copy import deepcopy
 
 from board import get_scoring
 from classes import Path
@@ -105,8 +105,12 @@ def find_paths(city1, city2, city_edges, max_cost, scoring, player=None, edge_cl
     # Put the first city into the queue.
     queue.append((city1, set(city1), Path(set(), scoring, player, edge_claims)))
 
-    while queue:
+    max_iter = 1000
+    iter = 0
+
+    while queue and iter < max_iter and len(result) < 20:
         city, visited, path = queue.popleft()
+        iter += 1
 
         # Add all neighbors to the queue.
         for outgoing_edge in city_edges[city]:
@@ -116,7 +120,7 @@ def find_paths(city1, city2, city_edges, max_cost, scoring, player=None, edge_cl
             # Second and third line make sure it's not claimed by another player, if that matters.
             if other_city not in visited and path.cost + outgoing_edge.cost <= max_cost \
                     and ((edge_claims is None and player is None)
-                    or edge_claims[outgoing_edge] is None or edge_claims[outgoing_edge] == player.name):
+                         or edge_claims[outgoing_edge] is None or edge_claims[outgoing_edge] == player.name):
                 # Create a copy of the path thus far with the new edge added.
                 updated_path = deepcopy(path)
                 updated_path.add_edge(outgoing_edge, scoring, player, edge_claims)
@@ -124,6 +128,10 @@ def find_paths(city1, city2, city_edges, max_cost, scoring, player=None, edge_cl
                 if other_city == city2:
                     # The updated path is a valid path between the two cities.
                     result.append(updated_path)
+
+                    # Don't find paths more than three times the cost of the cheapest path.
+                    if updated_path.cost * 2 < max_cost:
+                        max_cost = updated_path.cost * 2
                 else:
                     # Add the updated path and new city to the queue.
                     queue.append((other_city, visited.union(set(other_city)), updated_path))

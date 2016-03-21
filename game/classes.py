@@ -115,14 +115,16 @@ class Path:
         self.score = 0
 
         for edge in edges:
-            if (player is None and edge_claims is None) or (edge_claims[edge] != player):
+            # If the player owns the edge, then the there's no cost or score to the edge.
+            if player is None or edge_claims is None or edge_claims[edge] != player.name:
                 self.cost += edge.cost
                 self.score += scoring[edge.cost]
 
     def add_edge(self, edge, scoring, player=None, edge_claims=None):
         self.edges.add(edge)
 
-        if (player is None and edge_claims is None) or (edge_claims[edge] != player):
+        # If the player owns the edge, then the there's no cost or score to the edge.
+        if player is None or edge_claims is None or edge_claims[edge] != player.name:
             self.cost += edge.cost
             self.score += scoring[edge.cost]
 

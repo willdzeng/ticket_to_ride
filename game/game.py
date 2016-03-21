@@ -223,6 +223,7 @@ class Game:
 
         # Make sure that there are cards to draw.
         if not self._deck:
+            print str(self._discards)
             return False, FailureCause.deck_out_of_cards
 
         card = self._face_up_cards[card_index]
@@ -270,6 +271,7 @@ class Game:
 
         # Make sure that there are cards to draw.
         if not self._deck:
+            print str(self._discards)
             return False, FailureCause.deck_out_of_cards
 
         hand = self._player_info[player].hand
@@ -369,7 +371,7 @@ class Game:
             # Add the ability to connect any connectible cities.
             for edge in self._edge_claims:
                 if self._edge_claims[edge] is None:
-                    result += self._all_connection_actions(edge, hand.cards)
+                    result += self.all_connection_actions(edge, hand.cards)
 
         else:
             # If only one action remains, then only allow non-wild face-up draws.
@@ -405,7 +407,7 @@ class Game:
         return deepcopy(self._last_actions)
 
     @staticmethod
-    def _all_connection_actions(edge, cards):
+    def all_connection_actions(edge, cards):
         """
         Gets all available connection actions available given a certain set of cards for a certain edge.
         :param edge: The edge to check.
