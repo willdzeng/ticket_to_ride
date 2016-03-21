@@ -223,7 +223,6 @@ class Game:
 
         # Make sure that there are cards to draw.
         if not self._deck:
-            print str(self._discards)
             return False, FailureCause.deck_out_of_cards
 
         card = self._face_up_cards[card_index]
@@ -271,7 +270,6 @@ class Game:
 
         # Make sure that there are cards to draw.
         if not self._deck:
-            print str(self._discards)
             return False, FailureCause.deck_out_of_cards
 
         hand = self._player_info[player].hand
@@ -522,5 +520,6 @@ class Game:
         If the deck is empty, shuffle the discards back in and create a new deck.
         """
         if not self._deck:
-            self._deck = shuffle(self._discards)
+            self._deck = self._discards
+            shuffle(self._deck)
             self._discards = []
