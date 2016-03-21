@@ -1,8 +1,13 @@
 from collections import deque
-from copy import copy, deepcopy
+from copy import deepcopy
 
 from board import get_scoring
 from classes import Path
+
+# Maximum number of iterations for finding paths.
+MAX_PATH_ITER = 1000
+
+MAX_NUM_PATH = 10
 
 
 def connected(city1, city2, city_edges, edge_claims, player):
@@ -86,7 +91,7 @@ def find_paths_for_destinations(destinations, city_edges, max_cost, scoring=get_
     return sorted(all_paths, key=sort_method)
 
 
-def find_paths(city1, city2, city_edges, max_cost, scoring, player=None, edge_claims=None, ):
+def find_paths(city1, city2, city_edges, max_cost, scoring, player=None, edge_claims=None):
     """
     Find all paths that connect two cities for less than the max_cost.
 
@@ -99,14 +104,18 @@ def find_paths(city1, city2, city_edges, max_cost, scoring, player=None, edge_cl
     :param edge_claims: Optional parameter for edge_claims.  If included, all edges owned by the player have 0 cost.
     :return: A list of paths.
     """
+
     queue = deque()
     result = []
 
     # Put the first city into the queue.
     queue.append((city1, set(city1), Path(set(), scoring, player, edge_claims)))
 
-    while queue:
+    iteration = 0
+
+    while queue and iteration < MAX_PATH_ITER and len(result) < MAX_NUM_PATH:
         city, visited, path = queue.popleft()
+        iteration += 1
 
         # Add all neighbors to the queue.
         for outgoing_edge in city_edges[city]:
@@ -116,7 +125,7 @@ def find_paths(city1, city2, city_edges, max_cost, scoring, player=None, edge_cl
             # Second and third line make sure it's not claimed by another player, if that matters.
             if other_city not in visited and path.cost + outgoing_edge.cost <= max_cost \
                     and ((edge_claims is None and player is None)
-                    or edge_claims[outgoing_edge] is None or edge_claims[outgoing_edge] == player.name):
+                         or edge_claims[outgoing_edge] is None or edge_claims[outgoing_edge] == player.name):
                 # Create a copy of the path thus far with the new edge added.
                 updated_path = deepcopy(path)
                 updated_path.add_edge(outgoing_edge, scoring, player, edge_claims)
@@ -124,6 +133,10 @@ def find_paths(city1, city2, city_edges, max_cost, scoring, player=None, edge_cl
                 if other_city == city2:
                     # The updated path is a valid path between the two cities.
                     result.append(updated_path)
+
+                    # Don't find paths more than three times the cost of the cheapest path.
+                    if updated_path.cost * 2 < max_cost:
+                        max_cost = updated_path.cost * 2
                 else:
                     # Add the updated path and new city to the queue.
                     queue.append((other_city, visited.union(set(other_city)), updated_path))

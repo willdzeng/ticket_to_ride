@@ -56,6 +56,9 @@ class Edge(namedtuple("Edge", "city1 city2 cost color")):
     def __str__(self):
         return "(%s, %s, %s, %s)" % (str(self.city1), str(self.city2), str(self.cost), Colors.str(self.color))
 
+    def __repr__(self):
+        return str(self)
+
 
 class Destination(namedtuple("Destination", "city1 city2 value")):
     def __new__(cls, city1, city2, value):
@@ -115,14 +118,16 @@ class Path:
         self.score = 0
 
         for edge in edges:
-            if (player is None and edge_claims is None) or (edge_claims[edge] != player):
+            # If the player owns the edge, then the there's no cost or score to the edge.
+            if player is None or edge_claims is None or edge_claims[edge] != player.name:
                 self.cost += edge.cost
                 self.score += scoring[edge.cost]
 
     def add_edge(self, edge, scoring, player=None, edge_claims=None):
         self.edges.add(edge)
 
-        if (player is None and edge_claims is None) or (edge_claims[edge] != player):
+        # If the player owns the edge, then the there's no cost or score to the edge.
+        if player is None or edge_claims is None or edge_claims[edge] != player.name:
             self.cost += edge.cost
             self.score += scoring[edge.cost]
 

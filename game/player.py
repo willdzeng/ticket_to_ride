@@ -17,3 +17,11 @@ class Player:
     # TODO: Test.
     def game_ended(self, game):
         pass
+
+    def debug_print(self):
+        """
+        Prints extra debug information.
+
+        :return: A string to print with debug information.
+        """
+        return ""

@@ -384,7 +384,7 @@ class Game:
             # Add the ability to connect any connectible cities.
             for edge in self._edge_claims:
                 if self._edge_claims[edge] is None:
-                    result += self._all_connection_actions(edge, hand.cards)
+                    result += self.all_connection_actions(edge, hand.cards)
 
         else:
             # If only one action remains, then only allow non-wild face-up draws.
@@ -420,7 +420,7 @@ class Game:
         return deepcopy(self._last_actions)
 
     @staticmethod
-    def _all_connection_actions(edge, cards):
+    def all_connection_actions(edge, cards):
         """
         Gets all available connection actions available given a certain set of cards for a certain edge.
         :param edge: The edge to check.
@@ -539,5 +539,6 @@ class Game:
         If the deck is empty, shuffle the discards back in and create a new deck.
         """
         if not self._deck:
-            self._deck = shuffle(self._discards)
+            self._deck = self._discards
+            shuffle(self._deck)
             self._discards = []
