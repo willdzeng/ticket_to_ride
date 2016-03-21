@@ -109,19 +109,26 @@ class PlayerInfo:
 
 
 class Path:
-    def __init__(self, edges, scoring):
+    def __init__(self, edges, scoring, player=None, edge_claims=None):
         self.edges = edges
         self.cost = 0
         self.score = 0
 
         for edge in edges:
+            if (player is None and edge_claims is None) or (edge_claims[edge] != player):
+                self.cost += edge.cost
+                self.score += scoring[edge.cost]
+
+    def add_edge(self, edge, scoring, player=None, edge_claims=None):
+        self.edges.add(edge)
+
+        if (player is None and edge_claims is None) or (edge_claims[edge] != player):
             self.cost += edge.cost
             self.score += scoring[edge.cost]
 
-    def add_edge(self, edge, scoring):
-        self.edges.add(edge)
-        self.cost += edge.cost
-        self.score += scoring[edge.cost]
+    @staticmethod
+    def default_sort_method(path):
+        return path.cost
 
     def __repr__(self):
         return "(%s, %s, [%s])" % (str(self.cost), str(self.score),
