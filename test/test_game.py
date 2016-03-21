@@ -4,7 +4,7 @@ from game.classes import *
 from game.player import Player
 from game.board import create_city_edges, get_scoring
 from game.game import FailureCause
-from game.methods import connected, find_paths
+from game.methods import connected, find_paths, find_paths_for_destinations
 
 
 class TestGame(unittest.TestCase):
@@ -309,6 +309,44 @@ class TestGame(unittest.TestCase):
         # TODO: Test game ending conditions
         # TODO: Check empty deck gets shuffled
         # TODO: Test connection failures
+
+    def test_find_path_one_destination(self):
+        # Make sure that find_paths_for_destination works with a single destination.
+        self.assertEqual(str(find_paths_for_destinations([Destination("A", "E", 2)], self.city_edges, 45,
+                                                         get_scoring())),
+                         str(find_paths("A", "E", self.city_edges, 45, get_scoring())))
+
+    def test_find_paths_destination(self):
+        # ----------------------
+        #     A-2-B---4---D
+        #     |  /
+        #     2 3
+        #     |/
+        #     C
+        # ---------------------
+
+        edges = [
+            Edge("A", "B", 2, Colors.blue),
+            Edge("A", "C", 2, Colors.red),
+            Edge("B", "C", 3, Colors.none),
+            Edge("B", "D", 4, Colors.none),
+        ]
+
+        city_edges = create_city_edges(edges)
+
+        # Sets up a situation where BC would be cheapest by itself, but it'd be better to go BAC because AB is also a
+        # destination.
+        self.assertEqual("[(4, 4, [(A, C), (A, B)]), (5, 6, [(B, C), (A, B)]), (5, 6, [(A, C), (B, C)]), "
+                         "(7, 8, [(A, C), (A, B), (B, C)])]",
+                         str(find_paths_for_destinations([Destination("A", "B", 5), Destination("B", "C", 4)],
+                                                         city_edges, 15,
+                                                         get_scoring())))
+
+        # Test again with a maximum cost.
+        self.assertEqual("[(4, 4, [(A, C), (A, B)]), (5, 6, [(B, C), (A, B)]), (5, 6, [(A, C), (B, C)])]",
+                         str(find_paths_for_destinations([Destination("A", "B", 5), Destination("B", "C", 4)],
+                                                         city_edges, 5,
+                                                         get_scoring())))
 
 
 if __name__ == '__main__':

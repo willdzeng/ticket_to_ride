@@ -41,7 +41,8 @@ def connected(city1, city2, city_edges, edge_claims, player):
     return False
 
 
-def find_paths_for_destinations(destinations, city_edges, max_cost, scoring=get_scoring()):
+def find_paths_for_destinations(destinations, city_edges, max_cost, scoring=get_scoring(),
+                                sort_method=lambda path: path.cost):
     """
     Finds all paths that connect all destinations for less than the max_cost.
 
@@ -49,7 +50,9 @@ def find_paths_for_destinations(destinations, city_edges, max_cost, scoring=get_
     :param city_edges: All of the edges that make up the map.
     :param max_cost: The maximum cost of all paths returned.
     :param scoring: The scoring dictionary for the game.
-    :return: A list of paths, ordered from cheapest to most expensive.  Paths may not be continuous.
+    :param sort_method: Optional function to use when sorting.  Will take a path and return a value to sort with in
+    ascending order.
+    :return: A list of paths, ordered with sort method.  Paths may not be continuous.
     """
     dest_paths = {}
     all_paths = []
@@ -70,7 +73,7 @@ def find_paths_for_destinations(destinations, city_edges, max_cost, scoring=get_
             working_paths = all_paths
             all_paths = []
             for path1 in working_paths:
-                for path2 in dest_paths:
+                for path2 in dest_paths[dest]:
                     # Combine the paths and add them to all_paths if they're still below max_cost.
                     combined_path = Path(path1.edges.union(path2.edges), scoring)
 
@@ -78,7 +81,7 @@ def find_paths_for_destinations(destinations, city_edges, max_cost, scoring=get_
                         all_paths.append(combined_path)
 
     # Third step: Sort by path cost in ascending order.
-    return sorted(all_paths, key=lambda path: path.cost)
+    return sorted(all_paths, key=sort_method)
 
 
 def find_paths(city1, city2, city_edges, max_cost, scoring):
