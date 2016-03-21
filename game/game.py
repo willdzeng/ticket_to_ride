@@ -13,7 +13,7 @@ from actions import *
 class Game:
     starting_hand_size = 4
 
-    def __init__(self, players, maximum_rounds = 5000, custom_settings=False, city_edges=None, edges=None, deck=None, destinations=None,
+    def __init__(self, players, maximum_rounds=5000, custom_settings=False, city_edges=None, edges=None, deck=None, destinations=None,
                  num_cars=45):
         if not custom_settings:
             self._city_edges, self._edges = create_board()

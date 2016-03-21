@@ -14,7 +14,7 @@ print_debug = True
 maximum_rounds = 5000
 
 game_gui = gui.GUI()
-game = Game(players,maximum_rounds)
+game = Game(players, maximum_rounds)
 
 # Main game loop.  Tells players when to take their turn.
 while not game.is_game_over()[0]:
