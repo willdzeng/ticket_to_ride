@@ -2,9 +2,9 @@ import unittest
 from game import Game
 from game.classes import *
 from game.player import Player
-from game.board import create_city_edges
+from game.board import create_city_edges, get_scoring
 from game.game import FailureCause
-from game.methods import connected
+from game.methods import connected, find_paths
 
 
 class TestGame(unittest.TestCase):
@@ -300,6 +300,11 @@ class TestGame(unittest.TestCase):
                          (False, FailureCause.already_drew))
 
         self.assertTrue(self.game.is_turn(self.player1))
+
+    def test_find_paths(self):
+        # There are 2 paths from A to E.
+        self.assertEqual("[(10, 16, [(A, B), (B, D), (D, E)]), (17, 34, [(D, E), (B, C), (A, C), (B, D)])]",
+                         str(find_paths("A", "E", self.city_edges, 45, get_scoring())))
 
         # TODO: Test game ending conditions
         # TODO: Check empty deck gets shuffled

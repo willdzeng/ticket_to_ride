@@ -78,12 +78,6 @@ class Game:
         # Store the last actions taken.
         self._last_actions = []
 
-    def get_scoring(self):
-        """
-        :return: The scoring dictionary.
-        """
-        return dict(self._scoring)
-
     def get_edge_claims(self):
         """
         :return: All edge claims.

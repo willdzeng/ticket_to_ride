@@ -26,7 +26,7 @@ class FailureCause:
         pass
 
     none, no_route, wrong_turn, missing_cards, incompatible_cards, already_drew, invalid_card_index, \
-        insufficient_cars, game_over, deck_out_of_cards, no_action = range(11)
+    insufficient_cars, game_over, deck_out_of_cards, no_action = range(11)
 
     cause_list = ['None', 'No Route', "Wrong Turn", "Missing Cards", "Incompatible Cards", "Already Drew",
                   "Invalid Card Index", "Insufficient Cards", "Game Over", "Deck out of Cards", "No Action"]
@@ -105,4 +105,24 @@ class PlayerInfo:
                "\tHand: %s\n" \
                "\tCars Remaining: %s\n" \
                "\tDestinations: [%s]\n}" % (str(self.score), str(self.hand), str(self.num_cars),
-                                        ", ".join(map(str, self.destinations)))
+                                            ", ".join(map(str, self.destinations)))
+
+
+class Path:
+    def __init__(self, edges, scoring):
+        self.edges = edges
+        self.cost = 0
+        self.score = 0
+
+        for edge in edges:
+            self.cost += edge.cost
+            self.score += scoring[edge.cost]
+
+    def add_edge(self, edge, scoring):
+        self.edges.add(edge)
+        self.cost += edge.cost
+        self.score += scoring[edge.cost]
+
+    def __repr__(self):
+        return "(%s, %s, [%s])" % (str(self.cost), str(self.score),
+                                   ", ".join(["(%s, %s)" % (edge.city1, edge.city2) for edge in self.edges]))
