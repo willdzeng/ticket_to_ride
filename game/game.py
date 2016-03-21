@@ -358,6 +358,10 @@ class Game:
         if not self.is_turn(player):
             return []
 
+        # Make sure the player has action remaining
+        if self._num_actions_remaining < 1:
+            return []
+
         result = [DrawDeckAction()]
 
         if self._num_actions_remaining > 1:
