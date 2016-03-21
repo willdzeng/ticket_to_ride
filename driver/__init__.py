@@ -8,7 +8,7 @@ from game import Game
 from game.methods import find_paths_for_destinations
 from game.board import create_board
 
-p1 = RandomAI("P1")
+p1 = CheapestPathAI("P1")
 # p2 = Player("P2")
 p2 = GreedyAI("P2")
 

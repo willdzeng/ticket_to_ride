@@ -8,6 +8,11 @@ from game.actions import DrawDeckAction
 
 
 class GreedyAI(Player):
+    """
+    AI that plays by finding the ideal path to all destinations that is affordable and maximizes score.  It will
+    randomly claim edges in the best path until there are none left to claim, then it behaves randomly.  If it cannot
+    claim any edges it wants, it will draw cards from the deck until it can.
+    """
     def __init__(self, name):
         Player.__init__(self, name)
         self.city_edges, edges = create_board()
@@ -26,6 +31,7 @@ class GreedyAI(Player):
 
         if not all_paths or game.cards_in_deck() == 0:
             # Random action for now when no paths remain to check.
+            # TODO: Instead of behaving randomly, try to get the edges that will get you the most points.
             print game.cards_in_discard()
             actions = game.get_available_actions(self)
         elif game.get_remaining_actions(self) == 1:

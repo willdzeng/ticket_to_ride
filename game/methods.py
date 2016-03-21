@@ -4,6 +4,10 @@ from copy import deepcopy
 from board import get_scoring
 from classes import Path
 
+# Maximum number of iterations for finding paths.
+MAX_PATH_ITER = 1000
+
+MAX_NUM_PATH = 20
 
 def connected(city1, city2, city_edges, edge_claims, player):
     """
@@ -99,18 +103,18 @@ def find_paths(city1, city2, city_edges, max_cost, scoring, player=None, edge_cl
     :param edge_claims: Optional parameter for edge_claims.  If included, all edges owned by the player have 0 cost.
     :return: A list of paths.
     """
+
     queue = deque()
     result = []
 
     # Put the first city into the queue.
     queue.append((city1, set(city1), Path(set(), scoring, player, edge_claims)))
 
-    max_iter = 1000
-    iter = 0
+    iteration = 0
 
-    while queue and iter < max_iter and len(result) < 20:
+    while queue and iteration < MAX_PATH_ITER and len(result) < MAX_NUM_PATH:
         city, visited, path = queue.popleft()
-        iter += 1
+        iteration += 1
 
         # Add all neighbors to the queue.
         for outgoing_edge in city_edges[city]:
