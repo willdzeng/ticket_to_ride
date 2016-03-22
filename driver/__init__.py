@@ -13,9 +13,10 @@ p2 = GreedyAI("P2")
 
 players = [p1, p2]
 
-use_gui =False
+use_gui = False
 print_debug = True
 exception_on_bad_action = True
+pause_between_turns = 0
 maximum_rounds = 5000
 
 game_gui = None
@@ -47,6 +48,9 @@ while not game.is_game_over()[0]:
             # If the action fails, raise an exception indicating what went wrong.
             if not action_result[0] and exception_on_bad_action:
                 raise Exception("Failure", FailureCause.str(action_result[1]))
+
+            if pause_between_turns > 0:
+                time.sleep(pause_between_turns)
 
             break
 

@@ -1,10 +1,8 @@
 from random import randrange
-from time import sleep
 
 from game import Player, Game
 from game.methods import find_paths_for_destinations
 from game.board import create_board
-from game.classes import FailureCause, Path
 from game.actions import DrawDeckAction
 
 
@@ -30,38 +28,38 @@ class CFBaseAI(Player):
         self.path = None
         self.path_costs = {}
         self.edge_costs = {}
+        self.all_paths = []
 
     def take_turn(self, game):
         info = game.get_player_info(self)
+        edge_claims = game.get_edge_claims()
 
         last_actions = game.get_last_actions()
         last_action = last_actions[0] if last_actions else None
 
-        # if self.path and last_action is not None and last_action.is_connect() and last_action.edge in self.path.edges:
-        #     sleep(3)
-        #     print "PAUSE"
+        # Get the costs for all edges.
+        for edge in edge_claims:
+            if edge_claims[edge] == self.name:
+                self.edge_costs[edge] = 0
+            else:
+                self.edge_costs[edge] = self.edge_cost(edge, self.all_paths, game)
 
         # Get the path to work with only if it either does not exist or one of the old path's routes has been taken.
         if self.path is None or \
                 (last_action is not None and last_action.is_connect() and last_action.edge in self.path.edges):
-            edge_claims = game.get_edge_claims()
 
             # Get all paths.
-            all_paths = find_paths_for_destinations(info.destinations, self.city_edges, info.num_cars, player=self,
-                                                    edge_claims=edge_claims, sort_paths=False)
-
-            # Get the costs for all edges.
-            for edge in edge_claims:
-                self.edge_costs[edge] = self.edge_cost(edge, all_paths, game)
+            self.all_paths = find_paths_for_destinations(info.destinations, self.city_edges, info.num_cars, player=self,
+                                                         edge_claims=edge_claims, sort_paths=False)
 
             # Get the costs for all paths.
-            for path in all_paths:
-                self.path_costs[path] = self.path_cost(path, all_paths, self.edge_costs, game)
+            for path in self.all_paths:
+                self.path_costs[path] = self.path_cost(path, self.all_paths, self.edge_costs, game)
 
-            all_paths.sort(key=lambda path: self.path_costs[path])
+            self.all_paths.sort(key=lambda path: self.path_costs[path])
 
-            if all_paths:
-                self.path = all_paths[0]
+            if self.all_paths:
+                self.path = self.all_paths[0]
 
         if not self.path or not info.destinations or game.cards_in_deck() == 0:
             # Perform correct action when no more destinations are left to take.
@@ -126,12 +124,12 @@ class CFBaseAI(Player):
         info = game.get_player_info(self)
 
         for edge in self.path.edges:
-                if edge_claims[edge] != self.name:
-                    connection_actions = Game.all_connection_actions(edge, info.hand.cards)
+            if edge_claims[edge] != self.name:
+                connection_actions = Game.all_connection_actions(edge, info.hand.cards)
 
-                    # Using the first possible action means we will try the action that uses the least wilds.
-                    if connection_actions:
-                        actions.append(connection_actions[0])
+                # Using the first possible action means we will try the action that uses the least wilds.
+                if connection_actions:
+                    actions.append(connection_actions[0])
 
         return actions
 
@@ -166,6 +164,6 @@ class CFBaseAI(Player):
         return [DrawDeckAction()]
 
     def debug_print(self, game):
-        remaining_edges = self.path.edges - game.get_edges_for_player(self)
+        remaining_edges = self.path.edges - game.get_edges_for_player(self) if self.path is not None else []
 
         return "Path:%s\nRemaining Edges: [%s]" % (str(self.path), ", ".join([str(edge) for edge in remaining_edges]))

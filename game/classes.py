@@ -26,10 +26,11 @@ class FailureCause:
         pass
 
     none, no_route, wrong_turn, missing_cards, incompatible_cards, already_drew, invalid_card_index, \
-    insufficient_cars, game_over, deck_out_of_cards, no_action = range(11)
+    insufficient_cars, game_over, deck_out_of_cards, no_action, incorrect_destinations = range(12)
 
     cause_list = ['None', 'No Route', "Wrong Turn", "Missing Cards", "Incompatible Cards", "Already Drew",
-                  "Invalid Card Index", "Insufficient Cards", "Game Over", "Deck out of Cards", "No Action"]
+                  "Invalid Card Index", "Insufficient Cards", "Game Over", "Deck out of Cards", "No Action",
+                  "Incorrect Destinations"]
 
     @staticmethod
     def str(failure_cause):
@@ -100,6 +101,7 @@ class PlayerInfo:
     def __init__(self, hand, destinations, num_cars, score=0):
         self.score = score
         self.destinations = destinations
+        self.completed_destinations = []
         self.hand = hand
         self.num_cars = num_cars
 
@@ -107,8 +109,10 @@ class PlayerInfo:
         return "{\n\tPrivate Score: %s\n" \
                "\tHand: %s\n" \
                "\tCars Remaining: %s\n" \
-               "\tDestinations: [%s]\n}" % (str(self.score), str(self.hand), str(self.num_cars),
-                                            ", ".join(map(str, self.destinations)))
+               "\tDestinations: [%s]\n" \
+               "\tCompleted Destinations: [%s]}" % (str(self.score), str(self.hand), str(self.num_cars),
+                                                    ", ".join(map(str, self.destinations)),
+                                                    ", ".join(map(str, self.completed_destinations)))
 
 
 class Path:

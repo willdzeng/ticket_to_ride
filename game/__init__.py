@@ -19,4 +19,3 @@ from player import Player
 # print ", ".join(map(Colors.str_card, game.get_face_up_cards()))
 
 # TODO: Log of last player's actions.
-# TODO: All Available Actions

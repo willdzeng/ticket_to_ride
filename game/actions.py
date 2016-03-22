@@ -15,6 +15,9 @@ class Action:
     def is_connect(self):
         return False
 
+    def is_draw_destination(self):
+        return False
+
 
 class DrawDeckAction(Action):
     def __init__(self):
@@ -53,3 +56,5 @@ class ConnectAction(Action):
     def __str__(self):
         return "Action: Connect Cities(%s, %s)" % \
                (self.edge, Hand.cards_str(self.cards))
+
+# TODO: New destination action

@@ -13,7 +13,8 @@ from actions import *
 class Game:
     starting_hand_size = 4
 
-    def __init__(self, players, maximum_rounds=5000, custom_settings=False, city_edges=None, edges=None, deck=None, destinations=None,
+    def __init__(self, players, maximum_rounds=5000, custom_settings=False, city_edges=None, edges=None, deck=None,
+                 destinations=None,
                  num_cars=45):
         if not custom_settings:
             self._city_edges, self._edges = create_board()
@@ -43,8 +44,14 @@ class Game:
             score = 0
 
             # Give each player 3 destinations.
-            destinations = [self._destinations.pop(), self._destinations.pop(),
-                            self._destinations.pop()]
+            possible_destinations = [self._destinations.pop(), self._destinations.pop(),
+                                     self._destinations.pop()]
+
+            destinations = player.select_starting_destinations(possible_destinations)
+
+            # TODO: Make sure all destinations in are in possible_destinations.
+            # TODO: Check length.
+            # TODO: Raise exception on failure.
 
             # Reduce score by all incomplete destinations.
             for destination in destinations:
@@ -407,6 +414,8 @@ class Game:
                 if self._face_up_cards[i] != Colors.none:
                     result += [DrawFaceUpAction(i, self._face_up_cards[i])]
 
+        # TODO: Add action for destinations.
+
         return result
 
     def perform_action(self, player, action):
@@ -424,6 +433,9 @@ class Game:
             result = self.draw_face_up_card(player, action.index)
         elif action.is_connect():
             result = self.connect_cities(player, action.edge, action.cards)
+
+        # TODO: Add action for destinations.
+
 
         return result
 
@@ -499,6 +511,7 @@ class Game:
             if connected(destination.city1, destination.city2, self._city_edges, self._edge_claims, player):
                 self._player_info[player].score += destination.value * 2
 
+                self._player_info[player].completed_destinations.append(destination)
                 self._player_info[player].destinations.remove(destination)
 
     def _claim_edge(self, edge, player):
@@ -547,7 +560,7 @@ class Game:
         # Trigger all events for when the game ends.
         for event in self._game_ended_events:
             event(self)
-        print "Rounds played: %d"%self._rounds_count
+        print "Rounds played: %d" % self._rounds_count
 
     def _check_deck(self):
         """
