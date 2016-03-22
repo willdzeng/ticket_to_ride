@@ -45,8 +45,8 @@ class GUI:
             y_1.append(self.cities[edge.city1][1])
             x_1.append(self.cities[edge.city2][0])
             y_1.append(self.cities[edge.city2][1])
-            l1 = plt.plot(x_1, y_1, self.colors[edge.color])
-            plt.setp(l1, linewidth=2)
+            self.edge_colors[edge]= plt.plot(x_1, y_1, self.colors[edge.color])
+            plt.setp(self.edge_colors[edge], linewidth=2)
 
             x_mean = (x_1[0] +x_1[1])/2
             y_mean = (y_1[0] +y_1[1])/2
@@ -86,16 +86,6 @@ class GUI:
         self.cards['7'] = mpimg.imread('../gui/white.png')
         self.cards['8'] = mpimg.imread('../gui/wild.png')
 
-        #self.cards['Red'] = mpimg.imread('../gui/red.png')
-        #self.cards['Orange'] = mpimg.imread('../gui/orange.png')
-        #self.cards['Blue'] = mpimg.imread('../gui/blue.png')
-        #self.cards['Yellow'] = mpimg.imread('../gui/yellow.png')
-        #self.cards['Green'] = mpimg.imread('../gui/green.png')
-        #self.cards['Pink'] = mpimg.imread('../gui/pink.png')
-        #self.cards['Black'] = mpimg.imread('../gui/black.png')
-        #self.cards['White'] = mpimg.imread('../gui/white.png')
-        #self.cards['Wild'] = mpimg.imread('../gui/wild.png')
-
         i=0
         x = 0.858
         y = 0.78
@@ -104,16 +94,9 @@ class GUI:
             self.table_card_slots[i].get_xaxis().set_visible(False)
             self.table_card_slots[i].get_yaxis().set_visible(False)
         plt.draw()
-     #   self.table_card_slots[0].imshow(self.cards[str('8')])
-     #   self.table_card_slots[1].imshow(self.cards[str('8')])
-     #   self.table_card_slots[2].imshow(self.cards[str('8')])
-     #   self.table_card_slots[3].imshow(self.cards[str('8')])
-     #   self.table_card_slots[4].imshow(self.cards[str('8')])
-
-
-
-
         #plt.show()
+
+    #Variables
     colors = []
     cities = dict()
     x = []
@@ -121,6 +104,7 @@ class GUI:
     player_1_cards = dict()
     player_2_cards = dict()
     edge_weights = dict()
+    edge_colors = dict()
     cards = dict()
     table_card_slots = list()
     p1_score=[]
@@ -190,7 +174,7 @@ class GUI:
             face_up_cards = game.get_face_up_cards()
             i=0
             for card_key in face_up_cards:
-                print(str(card_key))
+                #print(str(card_key))
                 if(i < len(self.table_card_slots)):
                     self.table_card_slots[i].imshow(self.cards[str(card_key)])
                     i = i+1
@@ -200,7 +184,7 @@ class GUI:
     def update_display(self,game):
         scores = game.get_visible_scores()
 
-        print scores
+        #print scores
         for player in game._players:
             cards = game.get_player_info(player).hand.cards
             for card in cards:
@@ -221,8 +205,18 @@ class GUI:
             #print(edges[edge])
             if(edges[edge] == 'P1'):
                 plt.setp(self.edge_weights[edge],'color','b')
+                plt.setp(self.edge_colors[edge],'color','b')
+                plt.setp(self.edge_colors[edge], marker='.')
+                plt.setp(self.edge_colors[edge], linewidth=6)
+                plt.setp(self.edge_colors[edge], linestyle='--')
+                plt.setp(self.edge_colors[edge],'ms',10.0)
             elif(edges[edge] == 'P2'):
                 plt.setp(self.edge_weights[edge],'color','r')
+                plt.setp(self.edge_colors[edge],'color','r')
+                plt.setp(self.edge_colors[edge], marker='.')
+                plt.setp(self.edge_colors[edge], linewidth=6)
+                plt.setp(self.edge_colors[edge], linestyle='--')
+                plt.setp(self.edge_colors[edge],'ms',10.0)
 
                 #print(card_value)
                 #print(game.get_player_info(player).hand.cards{card})

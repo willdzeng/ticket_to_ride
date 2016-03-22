@@ -13,7 +13,7 @@ p2 = CheapestPathAI("P2")
 
 players = [p1, p2]
 
-use_gui = False
+use_gui =False
 print_debug = True
 maximum_rounds = 5000
 
