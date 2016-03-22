@@ -7,7 +7,7 @@ from classes import Path
 # Maximum number of iterations for finding paths.
 MAX_PATH_ITER = 1000
 
-MAX_NUM_PATH = 10
+MAX_NUM_PATH = 20
 
 
 def connected(city1, city2, city_edges, edge_claims, player):
@@ -47,7 +47,7 @@ def connected(city1, city2, city_edges, edge_claims, player):
 
 
 def find_paths_for_destinations(destinations, city_edges, max_cost, scoring=get_scoring(), player=None,
-                                edge_claims=None, sort_method=Path.default_sort_method):
+                                edge_claims=None, sort_paths=True):
     """
     Finds all paths that connect all destinations for less than the max_cost.
 
@@ -57,8 +57,7 @@ def find_paths_for_destinations(destinations, city_edges, max_cost, scoring=get_
     :param scoring: The scoring dictionary for the game.
     :param player: Optional parameter for a player.  If included, all edges owned by the player have 0 cost.
     :param edge_claims: Optional parameter for edge_claims.  If included, all edges owned by the player have 0 cost.
-    :param sort_method: Optional function to use when sorting.  Will take a path and return a value to sort with in
-    ascending order.
+    :param sort_paths: Optional boolean to sort the paths.  By default, will sort paths by cost.
     :return: A list of paths, ordered with sort method.  Paths may not be continuous.
     """
     dest_paths = {}
@@ -88,7 +87,10 @@ def find_paths_for_destinations(destinations, city_edges, max_cost, scoring=get_
                         all_paths.append(combined_path)
 
     # Third step: Sort by path cost in ascending order.
-    return sorted(all_paths, key=sort_method)
+    if sort_paths:
+        return sorted(all_paths, key=Path.default_sort_method)
+    else:
+        return all_paths
 
 
 def find_paths(city1, city2, city_edges, max_cost, scoring, player=None, edge_claims=None):

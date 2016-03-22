@@ -18,10 +18,11 @@ class Player:
     def game_ended(self, game):
         pass
 
-    def debug_print(self):
+    def debug_print(self, game):
         """
         Prints extra debug information.
 
+        :param game:
         :return: A string to print with debug information.
         """
         return ""

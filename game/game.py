@@ -127,6 +127,21 @@ class Game:
         else:
             return 0
 
+    def get_edges_for_player(self, player):
+        """
+        Gets all the edges a player has.
+
+        :param player: The player.
+        :return: A set of all edges this player owns
+        """
+        result = set()
+
+        for edge in self._edge_claims:
+            if self._edge_claims[edge] == player.name:
+                result.add(edge)
+
+        return result
+
     def cards_in_deck(self):
         """
         Determine how many cards are left in the deck.

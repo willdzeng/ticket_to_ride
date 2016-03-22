@@ -1,10 +1,12 @@
-from greedy_ai import GreedyAI
+from ai.cf_ai.cf_base_ai import CFBaseAI
 
 
-class CheapestPathAI(GreedyAI):
+class CheapestPathAI(CFBaseAI):
     """
-    Plays the same as the greedy AI, but looks for the cheapest path, instead of the one with the best score.
+    Plays the same as the CFBase AI, but looks for the cheapest path.
     """
     def __init__(self, name):
-        GreedyAI.__init__(self, name)
-        self.sort_method = lambda path: path.cost
+        CFBaseAI.__init__(self, name)
+
+    def path_cost(self, path, all_paths, edge_costs, game):
+        return path.cost
