@@ -2,6 +2,7 @@ import time
 
 import gui
 from ai.cf_ai.cheapest_path_ai import CheapestPathAI
+from ai.adversarial_ai import AdversarialAI
 from ai.cf_ai.greedy_ai import GreedyAI
 from ai.random_ai import RandomAI
 from game import Game
@@ -9,7 +10,7 @@ from game.classes import FailureCause
 
 p1 = CheapestPathAI("P1")
 # p2 = Player("P2")
-p2 = CheapestPathAI("P2")
+p2 = AdversarialAI("P2")
 
 players = [p1, p2]
 
