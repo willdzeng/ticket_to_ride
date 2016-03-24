@@ -26,11 +26,12 @@ class FailureCause:
         pass
 
     none, no_route, wrong_turn, missing_cards, incompatible_cards, already_drew, invalid_card_index, \
-    insufficient_cars, game_over, deck_out_of_cards, no_action, incorrect_destinations = range(12)
+    insufficient_cars, game_over, deck_out_of_cards, no_action, incorrect_destinations, already_claimed_opponent, \
+    already_claimed_self = range(14)
 
     cause_list = ['None', 'No Route', "Wrong Turn", "Missing Cards", "Incompatible Cards", "Already Drew",
                   "Invalid Card Index", "Insufficient Cards", "Game Over", "Deck out of Cards", "No Action",
-                  "Incorrect Destinations"]
+                  "Incorrect Destinations", "Edge Claimed by Opponent", "Edge Claimed by Self"]
 
     @staticmethod
     def str(failure_cause):
@@ -142,3 +143,12 @@ class Path:
     def __repr__(self):
         return "(%s, %s, [%s])" % (str(self.cost), str(self.score),
                                    ", ".join(["(%s, %s)" % (edge.city1, edge.city2) for edge in self.edges]))
+
+
+class HistoryEvent:
+    def __init__(self, player_name, action):
+        self.player_name = player_name
+        self.action = action
+
+    def __str__(self):
+        return "%s: %s" % (self.player_name, str(self.action))

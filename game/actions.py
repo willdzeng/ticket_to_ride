@@ -1,5 +1,4 @@
-from game import Hand
-from classes import Colors
+from classes import Colors, Hand
 
 
 class Action:

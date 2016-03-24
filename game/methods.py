@@ -135,10 +135,6 @@ def find_paths(city1, city2, city_edges, max_cost, scoring, player=None, edge_cl
                 if other_city == city2:
                     # The updated path is a valid path between the two cities.
                     result.append(updated_path)
-
-                    # Don't find paths more than three times the cost of the cheapest path.
-                    if updated_path.cost * 2 < max_cost:
-                        max_cost = updated_path.cost * 2
                 else:
                     # Add the updated path and new city to the queue.
                     queue.append((other_city, visited.union(set(other_city)), updated_path))

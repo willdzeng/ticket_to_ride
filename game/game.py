@@ -1,21 +1,20 @@
+import operator
 from collections import Counter
 from copy import deepcopy
-import operator
 from random import shuffle
 
+from actions import *
 from board import create_board, get_scoring
 from cards import init_decks, shuffle_deck
-from classes import Colors, Hand, PlayerInfo, FailureCause
+from classes import PlayerInfo, FailureCause, HistoryEvent, Hand
 from methods import connected
-from actions import *
 
 
 class Game:
-    starting_hand_size = 4
+    STARTING_HAND_SIZE = 4
 
     def __init__(self, players, maximum_rounds=5000, custom_settings=False, city_edges=None, edges=None, deck=None,
-                 destinations=None,
-                 num_cars=45):
+                 destinations=None, num_cars=45):
         if not custom_settings:
             self._city_edges, self._edges = create_board()
             self._deck, self._destinations = init_decks()
@@ -39,7 +38,7 @@ class Game:
         for player in players:
             # Give each player a hand of 5 cards from the top of the deck.
             # noinspection PyUnusedLocal
-            hand = Hand([self._deck.pop() for x in range(self.starting_hand_size)])
+            hand = Hand([self._deck.pop() for x in range(self.STARTING_HAND_SIZE)])
 
             score = 0
 
@@ -47,7 +46,7 @@ class Game:
             possible_destinations = [self._destinations.pop(), self._destinations.pop(),
                                      self._destinations.pop()]
 
-            destinations = player.select_starting_destinations(possible_destinations)
+            destinations = player.select_starting_destinations(possible_destinations, self)
 
             # TODO: Make sure all destinations in are in possible_destinations.
             # TODO: Check length.
@@ -83,8 +82,8 @@ class Game:
         self._turn_ended_events = set()
         self._game_ended_events = set()
 
-        # Store the last actions taken.
-        self._last_actions = []
+        # Store a history of all actions taken.
+        self._history = []
 
     def get_edge_claims(self):
         """
@@ -148,6 +147,14 @@ class Game:
                 result.add(edge)
 
         return result
+
+    def get_history(self):
+        """
+        Gets the history of all moves played this game.
+
+        :return: A list of history events, with the first event played this game at index 0.
+        """
+        return deepcopy(self._history)
 
     def cards_in_deck(self):
         """
@@ -270,11 +277,8 @@ class Game:
         # Replace face up card.
         self._face_up_cards[card_index] = self._deck.pop()
 
-        # Update last action
-        if self._num_actions_remaining == 2:
-            self._last_actions = []
-
-        self._last_actions += [DrawFaceUpAction(card_index, card)]
+        # Update history.
+        self._history.append(HistoryEvent(player.name, DrawFaceUpAction(card_index, card)))
 
         # Complete action.
         self._use_actions(1 if card != Colors.none else 2)
@@ -308,11 +312,8 @@ class Game:
 
         hand.add_card(self._deck.pop())
 
-        # Update last actions.
-        if self._num_actions_remaining == 2:
-            self._last_actions = []
-
-        self._last_actions += [DrawDeckAction()]
+        # Update history.
+        self._history.append(HistoryEvent(player.name, DrawDeckAction()))
 
         self._use_actions(1)
 
@@ -373,12 +374,19 @@ class Game:
             # End turn.
             self._use_actions(2)
 
-            # Update last action.
-            self._last_actions = [ConnectAction(edge, cards)]
+            # Update history.
+            self._history.append(HistoryEvent(player.name, ConnectAction(edge, cards)))
 
             return True, FailureCause.none
 
-        return False, FailureCause.no_route
+        if edge not in self._edges:
+            return False, FailureCause.no_route
+
+        if self._edge_claims[edge] != player.name:
+            return False, FailureCause.already_claimed_opponent
+
+        if self._edge_claims[edge] != player.name:
+            return False, FailureCause.already_claimed_self
 
     def get_available_actions(self, player):
         """
@@ -436,15 +444,7 @@ class Game:
 
         # TODO: Add action for destinations.
 
-
         return result
-
-    def get_last_actions(self):
-        """
-        Gets the actions performed last turn, or at the beginning of this turn.
-        :return: A list of actions.
-        """
-        return deepcopy(self._last_actions)
 
     @staticmethod
     def all_connection_actions(edge, cards):

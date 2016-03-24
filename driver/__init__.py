@@ -1,11 +1,11 @@
 import time
 
-import gui
 from ai.cf_ai.cheapest_path_ai import CheapestPathAI
 from ai.cf_ai.greedy_ai import GreedyAI
 from ai.random_ai import RandomAI
 from game import Game
 from game.classes import FailureCause
+from gui import gui
 
 p1 = CheapestPathAI("P1")
 # p2 = Player("P2")
@@ -13,7 +13,7 @@ p2 = GreedyAI("P2")
 
 players = [p1, p2]
 
-use_gui = False
+use_gui = True
 print_debug = True
 exception_on_bad_action = True
 pause_between_turns = 0
@@ -23,6 +23,7 @@ game_gui = None
 
 if use_gui:
     game_gui = gui.GUI()
+    # time.sleep(5)
 
 game = Game(players, maximum_rounds)
 

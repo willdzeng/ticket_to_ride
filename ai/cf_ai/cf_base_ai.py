@@ -34,9 +34,6 @@ class CFBaseAI(Player):
         info = game.get_player_info(self)
         edge_claims = game.get_edge_claims()
 
-        last_actions = game.get_last_actions()
-        last_action = last_actions[0] if last_actions else None
-
         # Get the costs for all edges.
         for edge in edge_claims:
             if edge_claims[edge] == self.name:
@@ -44,10 +41,16 @@ class CFBaseAI(Player):
             else:
                 self.edge_costs[edge] = self.edge_cost(edge, self.all_paths, game)
 
-        # Get the path to work with only if it either does not exist or one of the old path's routes has been taken.
-        if self.path is None or \
-                (last_action is not None and last_action.is_connect() and last_action.edge in self.path.edges):
+        # Make sure that none of the edges in the path have been taken by an opponent.
+        path_clear = True
 
+        if self.path is not None:
+            for edge in self.path.edges:
+                if edge_claims[edge] != self.name and edge_claims[edge] is not None:
+                    path_clear = False
+
+        # Get the path to work with only if it either does not exist or one of the old path's routes has been taken.
+        if self.path is None or not path_clear:
             # Get all paths.
             self.all_paths = find_paths_for_destinations(info.destinations, self.city_edges, info.num_cars, player=self,
                                                          edge_claims=edge_claims, sort_paths=False)
