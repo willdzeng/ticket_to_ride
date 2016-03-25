@@ -9,15 +9,16 @@ from gui import gui
 
 p1 = CheapestPathAI("P1")
 # p2 = Player("P2")
-p2 = GreedyAI("P2")
+p2 = CheapestPathAI("P2")
+# p2 = GreedyAI("P2")
 
 players = [p1, p2]
 
-use_gui = True
+use_gui = False
 print_debug = True
 exception_on_bad_action = True
 pause_between_turns = 0
-maximum_rounds = 5000
+maximum_rounds = 1000
 
 game_gui = None
 

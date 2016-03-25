@@ -1,9 +1,9 @@
 from random import randrange
 
 from game import Player, Game
-from game.methods import find_paths_for_destinations
+from game.actions import *
 from game.board import create_board
-from game.actions import DrawDeckAction
+from game.methods import find_paths_for_destinations
 
 
 # TODO: Only recalculate if route is taken by opponent.
@@ -29,17 +29,29 @@ class CFBaseAI(Player):
         self.path_costs = {}
         self.edge_costs = {}
         self.all_paths = []
+        self.info = None
 
     def take_turn(self, game):
-        info = game.get_player_info(self)
-        edge_claims = game.get_edge_claims()
+
+        # update game state first
+        self.info = game.get_player_info(self)
+        self.edge_claims = game.get_edge_claims()
+
+        # the first thing to check is if we already drew.
+        # then we don't need to calculate anything but draw another card
+        if game.get_remaining_actions(self) == 1:
+            action = self.on_already_drew(game)
+            return action[0]
+
+        edge_claims = self.edge_claims
+        info = self.info
 
         # Get the costs for all edges.
         for edge in edge_claims:
             if edge_claims[edge] == self.name:
                 self.edge_costs[edge] = 0
             else:
-                self.edge_costs[edge] = self.edge_cost(edge, self.all_paths, game)
+                self.edge_costs[edge] = self.eval_edge(edge, self.all_paths, game)
 
         # Make sure that none of the edges in the path have been taken by an opponent.
         path_clear = True
@@ -51,25 +63,14 @@ class CFBaseAI(Player):
 
         # Get the path to work with only if it either does not exist or one of the old path's routes has been taken.
         if self.path is None or not path_clear:
-            # Get all paths.
-            self.all_paths = find_paths_for_destinations(info.destinations, self.city_edges, info.num_cars, player=self,
-                                                         edge_claims=edge_claims, sort_paths=False)
+            self.path, self.all_paths = self.find_best_path(game, info.destinations)
 
-            # Get the costs for all paths.
-            for path in self.all_paths:
-                self.path_costs[path] = self.path_cost(path, self.all_paths, self.edge_costs, game)
-
-            self.all_paths.sort(key=lambda path: self.path_costs[path])
-
-            if self.all_paths:
-                self.path = self.all_paths[0]
-
-        if not self.path or not info.destinations or game.cards_in_deck() == 0:
+        # if we can't get a path after re-calculate then we need to decide if we want to draw a new destination card
+        # TODO: need to discuss what should we do if the path search can't find a path but we still have tickets card
+        if not self.path or not info.destinations:
+            print "AI: no path found"
             # Perform correct action when no more destinations are left to take.
             actions = self.on_no_more_destinations(game)
-        elif game.get_remaining_actions(self) == 1:
-            # Perform correct action when the player has already drawn.
-            actions = self.on_already_drew(game)
         else:
             # Pick an edge in the path and try to take it.
             actions = self.on_select_edge(self.path, self.edge_costs, game)
@@ -83,10 +84,37 @@ class CFBaseAI(Player):
 
         return action
 
+    def find_best_path(self, game, destinations):
+        """
+        Find the best path of giving destination cards based on the cost function
+        :param game: the game
+        :param destinations: the destination card
+        :return: return the best path
+        """
+        path = None
+
+        info = self.info
+        edge_claims = self.edge_claims
+
+        # Get all paths.
+        all_paths = find_paths_for_destinations(destinations, self.city_edges, info.num_cars, player=self,
+                                                edge_claims=edge_claims, sort_paths=False)
+        path_costs = {}
+        # Get the costs for all paths.
+        for path in all_paths:
+            path_costs[path] = self.eval_path(path, all_paths, self.edge_costs, game)
+
+        all_paths.sort(key=lambda path: path_costs[path])
+
+        if all_paths:
+            path = all_paths[0]
+
+        return path, all_paths
+
     def game_ended(self, game):
         pass
 
-    def path_cost(self, path, all_paths, edge_costs, game):
+    def eval_path(self, path, all_paths, edge_costs, game):
         """
         Determine the cost of an individual path.  Note that this is called only after all of the edges have a cost.
 
@@ -99,7 +127,7 @@ class CFBaseAI(Player):
         """
         return - path.score
 
-    def edge_cost(self, edge, all_paths, game):
+    def eval_edge(self, edge, all_paths, game):
         """
         Determine the cost of an individual edge.  Note that this is only called on edges that aren't already
         claimed by the player.  Edges claimed by the player have cost 0 automatically, and won't have this function
@@ -123,8 +151,8 @@ class CFBaseAI(Player):
         # Default: Select random edge that is playable.
         actions = []
 
-        edge_claims = game.get_edge_claims()
-        info = game.get_player_info(self)
+        edge_claims = self.edge_claims
+        info = self.info
 
         for edge in self.path.edges:
             if edge_claims[edge] != self.name:
@@ -143,7 +171,16 @@ class CFBaseAI(Player):
         :param game: The game object.
         :return: The actions to perform.  Will randomly pick from the list of actions.
         """
-        # Default: Draw randomly.
+        return self.draw_best_card(game)
+
+    def draw_best_card(self, game):
+        """
+        Draw the best card based on the path we planned.
+        :param game:
+        :return:
+        """
+        # TODO: need to add draw face up card based on the current path.
+
         return [DrawDeckAction()]
 
     def on_no_more_destinations(self, game):
@@ -154,8 +191,14 @@ class CFBaseAI(Player):
         :return: The action(s) to perform.  Will randomly pick from the list of actions.
         """
         # Default: Play randomly.
-        # TODO: Instead of behaving randomly, try to get the edges that will get you the most points.
-        return game.get_available_actions(self)
+        # TODO: Need to figure out a rule of when to draw destination card
+
+        if self.info.num_cars > 1:
+            action = [DrawDestinationAction()]
+        else:
+            action = self.draw_best_card(game)
+
+        return action
 
     def on_already_drew(self, game):
         """
@@ -164,7 +207,43 @@ class CFBaseAI(Player):
         :param game: The game object.
         :return: The actions to perform.  Will randomly pick from the list of actions.
         """
-        return [DrawDeckAction()]
+        return self.draw_best_card(game)
+
+    def select_destinations(self, game, destinations):
+        """
+        Selects up to three but at least one of the the destinations this player has drawn.
+
+        :param destinations: A list of the destinations to select from.
+        :return: A sub-list of the destinations passed in with at least one element.
+        """
+        # TODO: Need to add rules to select destination after finished all the destination card
+        destination_cost = []
+
+        for destination in destinations:
+            path, all_path = self.find_best_path(game, [destination])
+            if path is None:
+                destination_cost.append(100)
+            else:
+                destination_cost.append(path.cost)
+
+        index = destination_cost.index(min(destination_cost))
+        selected_destinations = destinations[index]
+        # # randomly select one destination card
+        # selected_destinations = destinations[randrange(0, len(destinations))]
+
+        return [selected_destinations]
+
+    def select_starting_destinations(self, game, destinations):
+        """
+        Selects up to three but at least one of the the destinations this player has drawn.
+
+        :param destinations: A list of the destinations to select from.
+        :return: A sub-list of the destinations passed in with at least one element.
+        """
+        # TODO: Need to add rules to select destination at the beginning of the game
+        selected_destinations = destinations
+
+        return selected_destinations
 
     def debug_print(self, game):
         remaining_edges = self.path.edges - game.get_edges_for_player(self) if self.path is not None else []

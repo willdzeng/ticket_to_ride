@@ -12,6 +12,7 @@ from methods import connected
 
 class Game:
     STARTING_HAND_SIZE = 4
+    INITIAL_CAR_NUM = 45
 
     def __init__(self, players, maximum_rounds=5000, custom_settings=False, city_edges=None, edges=None, deck=None,
                  destinations=None, num_cars=45):
@@ -19,7 +20,7 @@ class Game:
             self._city_edges, self._edges = create_board()
             self._deck, self._destinations = init_decks()
 
-            self._num_cars = 45
+            self._num_cars = self.INITIAL_CAR_NUM
         else:
             self._city_edges = city_edges
             self._edges = edges
@@ -46,14 +47,17 @@ class Game:
             possible_destinations = [self._destinations.pop(), self._destinations.pop(),
                                      self._destinations.pop()]
 
-            destinations = player.select_starting_destinations(possible_destinations, self)
+            destinations = player.select_starting_destinations(self, possible_destinations)
 
-            # TODO: Make sure all destinations in are in possible_destinations.
-            # TODO: Check length.
-            # TODO: Raise exception on failure.
+            if len(destinations) < 2:
+                raise Exception("Failure", FailureCause.str(FailureCause.not_enough_destinations))
 
-            # Reduce score by all incomplete destinations.
             for destination in destinations:
+                # Make sure the destination card is in the possible_destination cards set
+                if destination not in possible_destinations:
+                    raise Exception("Failure", FailureCause.str(FailureCause.wrong_destination_card))
+
+                # Reduce score by all incomplete destinations.
                 score -= destination.value
 
             self._player_info[player] = PlayerInfo(hand, destinations, self._num_cars, score)
@@ -306,7 +310,8 @@ class Game:
 
         # Make sure that there are cards to draw.
         if not self._deck:
-            return False, FailureCause.deck_out_of_cards
+            self._deck = shuffle_deck()
+            # return False, FailureCause.deck_out_of_cards
 
         hand = self._player_info[player].hand
 
@@ -319,6 +324,49 @@ class Game:
 
         # Check that the deck is not empty.
         self._check_deck()
+
+        return True, FailureCause.none
+
+    def draw_destination_cards(self, player):
+        """
+        Draw Destination Cards. Player will draw three destination card and choose one of it
+
+        :param player: the player to draw the cards
+        :return: If the action success or not
+        """
+        possible_destinations = [self._destinations.pop(),
+                                 self._destinations.pop(),
+                                 self._destinations.pop()]
+
+        # call player's select destination function to confirm which card it want to keep
+        selected_destinations = player.select_destinations(self, possible_destinations)
+
+        # Make sure the return is a list
+        if not isinstance(selected_destinations, list):
+            selected_destinations = [selected_destinations]
+
+        # Must return at least 1 card in between game
+        if len(selected_destinations) < 1:
+            return False, FailureCause.not_enough_destinations
+
+        # add the selected card into it's hand
+        self._player_info[player].destinations += selected_destinations
+
+        for destination in selected_destinations:
+            # Make sure the destination card is in the possible_destination cards set
+            if destination not in possible_destinations:
+                print destination
+                for a in possible_destinations:
+                    print a
+                print "aaa"
+                return False, FailureCause.wrong_destination_card
+
+            # immediately subtract the cost of the destination card from the player's score
+            self._player_info[player].score -= destination.value
+
+        self._use_actions(2)
+        # TODO Whether we need to add the card the player don't want back to the stack in case of
+        # short of ticket card
 
         return True, FailureCause.none
 
@@ -400,12 +448,15 @@ class Game:
             return result
 
         # Make sure the player has action remaining
-        if self._num_actions_remaining < 1:
+        if self._num_actions_remaining < 1:  # action remain == 0
             return result
 
         result += [DrawDeckAction()]
 
-        if self._num_actions_remaining > 1:
+        if self._num_actions_remaining > 1:  # action remain == 2
+            #
+            result += [DrawDestinationAction()]
+
             # Add the ability to draw any face up cards.
             result += [DrawFaceUpAction(i, self._face_up_cards[i]) for i in range(5)]
 
@@ -416,7 +467,7 @@ class Game:
                 if self._edge_claims[edge] is None:
                     result += self.all_connection_actions(edge, hand.cards)
 
-        else:
+        else:  # action remain == 1
             # If only one action remains, then only allow non-wild face-up draws.
             for i in range(len(self._face_up_cards)):
                 if self._face_up_cards[i] != Colors.none:
@@ -441,8 +492,8 @@ class Game:
             result = self.draw_face_up_card(player, action.index)
         elif action.is_connect():
             result = self.connect_cities(player, action.edge, action.cards)
-
-        # TODO: Add action for destinations.
+        elif action.is_draw_destination():
+            result = self.draw_destination_cards(player)
 
         return result
 

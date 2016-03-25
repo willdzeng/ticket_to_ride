@@ -57,3 +57,12 @@ class ConnectAction(Action):
                (self.edge, Hand.cards_str(self.cards))
 
 # TODO: New destination action
+class DrawDestinationAction(Action):
+    def __init__(self):
+        Action.__init__(self)
+
+    def is_draw_destination(self):
+        return True
+
+    def __str__(self):
+        return "Action: Draw Destination Card from Deck"

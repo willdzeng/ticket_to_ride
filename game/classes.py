@@ -27,11 +27,12 @@ class FailureCause:
 
     none, no_route, wrong_turn, missing_cards, incompatible_cards, already_drew, invalid_card_index, \
     insufficient_cars, game_over, deck_out_of_cards, no_action, incorrect_destinations, already_claimed_opponent, \
-    already_claimed_self = range(14)
+    already_claimed_self, not_enough_destinations, wrong_destination_card = range(16)
 
     cause_list = ['None', 'No Route', "Wrong Turn", "Missing Cards", "Incompatible Cards", "Already Drew",
                   "Invalid Card Index", "Insufficient Cards", "Game Over", "Deck out of Cards", "No Action",
-                  "Incorrect Destinations", "Edge Claimed by Opponent", "Edge Claimed by Self"]
+                  "Incorrect Destinations", "Edge Claimed by Opponent", "Edge Claimed by Self",
+                  "Not Enough Destination Cards Number Returned to Game","Player gives a wrong destination Card"]
 
     @staticmethod
     def str(failure_cause):

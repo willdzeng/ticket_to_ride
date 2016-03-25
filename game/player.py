@@ -25,7 +25,7 @@ class Player:
         """
         return ""
 
-    def select_destinations(self, destinations, game):
+    def select_destinations(self, game, destinations):
         """
         Selects up to three but at least one of the the destinations this player has drawn.
 
@@ -36,7 +36,7 @@ class Player:
 
         return destinations
 
-    def select_starting_destinations(self, destinations, game):
+    def select_starting_destinations(self, game, destinations):
         """
         Selects up to three but at least one of the the destinations this player has drawn.
 
