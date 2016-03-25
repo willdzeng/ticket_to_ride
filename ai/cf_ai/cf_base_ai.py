@@ -30,6 +30,7 @@ class CFBaseAI(Player):
         self.edge_costs = {}
         self.all_paths = []
         self.info = None
+        self.edge_claims = None
 
     def take_turn(self, game):
 
