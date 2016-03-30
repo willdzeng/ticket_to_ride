@@ -33,6 +33,9 @@ class GraphTopology:
         self.cities = list()
         self.city_to_i = dict()
 
+    def get_2d_list_slice(self, matrix, start_row, end_row, start_col, end_col):
+        return [row[start_col:end_col] for row in matrix[start_row:end_row]]
+
     #Create a new adjacency matrix based on claims
     def update_game_board(self,game):
         self.initialize_matrices()
@@ -53,10 +56,20 @@ class GraphTopology:
                 self.adjacency[city1][city2] = self.route_weight(route)
                 self.degree [city1][city1] =  self.degree [city1][city1] +1;
                 self.degree [city2][city2] =  self.degree [city2][city2] +1;
+        #print self.degree
+        #print i
+        #np.delete.adjacency(
+    
+        #self.adjacency2 = numpy.array(self.adjacency)[[0:i-1],[0:i-1]]
+        #self.degree2 = numpy.array(self.degree)[[0:i-1][0:i-1]]
         
-        self.adjacency = self.adjacency[1:i-1][1:i-1]
-        self.degrees = self.degree[1:i-1][1:i-1]
+        self.adjacency = self.get_2d_list_slice(self.adjacency,0,i,0,i)
+        self.degree = self.get_2d_list_slice(self.degree,0,i,0,i)
+
+        print self.degree
         self.laplacian = np.subtract(self.degree, self.adjacency)
+        print len(self.laplacian)
+        print self.laplacian
 
     def get_edge(self):
         w,v = np.linalg.eig(self.laplacian)
