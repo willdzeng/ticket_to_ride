@@ -37,6 +37,7 @@ class CFBaseAI(Player):
         # update game state first
         self.info = game.get_player_info(self)
         self.edge_claims = game.get_edge_claims()
+        self.available_actions = game.get_available_actions(self)
 
         # the first thing to check is if we already drew.
         # then we don't need to calculate anything but draw another card
@@ -68,10 +69,13 @@ class CFBaseAI(Player):
 
         # if we can't get a path after re-calculate then we need to decide if we want to draw a new destination card
         # TODO: need to discuss what should we do if the path search can't find a path but we still have tickets card
-        if not self.path or not info.destinations:
-            print "AI: no path found"
+        print self.path
+        print "path clear is",path_clear
+        # TODO: Bug need to be fixed: have path and it's clear but it doesn't claim route
+        if self.path is None:
+            print "#############AI: no path found##############"
             # Perform correct action when no more destinations are left to take.
-            actions = self.on_no_more_destinations(game)
+            actions = self.on_cant_find_path(game)
         else:
             # Pick an edge in the path and try to take it.
             actions = self.on_select_edge(self.path, self.edge_costs, game)
@@ -93,6 +97,11 @@ class CFBaseAI(Player):
         :return: return the best path
         """
         path = None
+        all_paths = []
+
+        # if there is no destination card, return None
+        if not destinations:
+            return path, all_paths
 
         info = self.info
         edge_claims = self.edge_claims
@@ -165,9 +174,63 @@ class CFBaseAI(Player):
 
         return actions
 
+    def on_cant_find_path(self,game):
+        """
+        Execute when it can't find any path
+        :param game:
+        :return: the actions to perform, list of action
+        """
+        best_action = []
+        draw_ticket_action  = []
+
+        # if we don't have enough destination, we will see if we want to draw a ticket or not
+        if self.info.destinations:
+            draw_ticket_action = self.on_no_more_destinations(game)
+
+        if draw_ticket_action:
+            return draw_ticket_action
+
+        for action in self.available_actions:
+            if action.is_connect():
+                best_action = [action]
+                break
+
+        if not best_action:
+            best_action = self.draw_best_card(game)
+
+        return best_action
+
     def on_cant_select_edge(self, game):
         """
         Executes when there aren't enough cards to play anything.
+
+        :param game: The game object.
+        :return: The actions to perform.  Will randomly pick from the list of actions.
+        """
+        return self.draw_best_card(game)
+
+
+
+    def on_no_more_destinations(self, game):
+        """
+        Executes when there are no more destinations for the player to play.
+
+        :param game: The game object.
+        :return: The action(s) to perform.  Will randomly pick from the list of actions.
+        """
+        # Default: Play randomly.
+        # TODO: Need to figure out a rule of when to draw destination card
+        action = []
+        if self.info.num_cars > 20:
+            action = [DrawDestinationAction()]
+        # else:
+        #     action = self.draw_best_card(game)
+
+        return action
+
+    def on_already_drew(self, game):
+        """
+        Executes when it's this player's turn but they already drew.
 
         :param game: The game object.
         :return: The actions to perform.  Will randomly pick from the list of actions.
@@ -183,32 +246,6 @@ class CFBaseAI(Player):
         # TODO: need to add draw face up card based on the current path.
 
         return [DrawDeckAction()]
-
-    def on_no_more_destinations(self, game):
-        """
-        Executes when there are no more destinations for the player to play.
-
-        :param game: The game object.
-        :return: The action(s) to perform.  Will randomly pick from the list of actions.
-        """
-        # Default: Play randomly.
-        # TODO: Need to figure out a rule of when to draw destination card
-
-        if self.info.num_cars > 1:
-            action = [DrawDestinationAction()]
-        else:
-            action = self.draw_best_card(game)
-
-        return action
-
-    def on_already_drew(self, game):
-        """
-        Executes when it's this player's turn but they already drew.
-
-        :param game: The game object.
-        :return: The actions to perform.  Will randomly pick from the list of actions.
-        """
-        return self.draw_best_card(game)
 
     def select_destinations(self, game, destinations):
         """
