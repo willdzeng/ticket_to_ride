@@ -56,6 +56,7 @@ class ConnectAction(Action):
         return "Action: Connect Cities(%s, %s)" % \
                (self.edge, Hand.cards_str(self.cards))
 
+
 # TODO: New destination action
 class DrawDestinationAction(Action):
     def __init__(self):

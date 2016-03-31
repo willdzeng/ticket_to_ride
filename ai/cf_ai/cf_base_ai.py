@@ -6,7 +6,6 @@ from game.board import create_board
 from game.methods import find_paths_for_destinations
 
 
-# TODO: Only recalculate if route is taken by opponent.
 class CFBaseAI(Player):
     """
     AI that plays by finding the ideal path to all destinations that is affordable and maximizes a predefined cost
@@ -69,8 +68,9 @@ class CFBaseAI(Player):
 
         # if we can't get a path after re-calculate then we need to decide if we want to draw a new destination card
         # TODO: need to discuss what should we do if the path search can't find a path but we still have tickets card
-        print self.path
-        print "path clear is",path_clear
+        # TODO: Put print statements into separate method.  Maybe have 2 different debug prints?
+        print "Path: %s" % self.path
+        print "Path is clear" if path_clear else "Path is not clear"
         # TODO: Bug need to be fixed: have path and it's clear but it doesn't claim route
         if self.path is None:
             print "#############AI: no path found##############"

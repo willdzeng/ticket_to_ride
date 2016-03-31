@@ -6,8 +6,10 @@ from ai.random_ai import RandomAI
 from game import Game
 from game.classes import FailureCause
 from gui import gui
+from human_player.console_player import ConsolePlayer
 
-p1 = CheapestPathAI("P1")
+# p1 = CheapestPathAI("P1")
+p1 = ConsolePlayer("Human")
 # p2 = Player("P2")
 p2 = CheapestPathAI("P2")
 # p2 = GreedyAI("P2")
@@ -36,16 +38,23 @@ while not game.is_game_over()[0]:
             if use_gui:
                 game_gui.update(game)
 
-            if print_debug:
-                print "Player %s: %s\nDoing Action: %s" % \
-                      (player.name, game.get_player_info(player), action_to_perform)
-
-                print player.debug_print(game)
-
-                print "\n"
+            player_info = game.get_player_info(player)
 
             # Perform action.
             action_result = game.perform_action(player, action_to_perform)
+
+            # Print results.  This happens after the action is performed so the timing is correct when drawing
+            # destinations.
+            if print_debug:
+                print "Player %s: %s\nDoing Action: %s" % \
+                      (player.name, player_info, action_to_perform)
+
+                debug_print = player.debug_print(game)
+
+                if debug_print != "":
+                    print debug_print
+
+                print ""
 
             # If the action fails, raise an exception indicating what went wrong.
             if not action_result[0] and exception_on_bad_action:
