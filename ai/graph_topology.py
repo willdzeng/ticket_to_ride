@@ -26,10 +26,10 @@ class GraphTopology:
         #return self.claimants[self.routes.get(route,'unclaimed')]
         return self.claimants[self.routes.get(route) or 'unclaimed' ]
         
-    def initialize_matrices(self):
+    def initialize_matrices(self,n):
         #self.laplacian = [[0 for i in range(40)] for j in range(40)]
-        self.degree = [[0 for i in range(40)] for j in range(40)]
-        self.adjacency =  [[0 for i in range(40)] for j in range(40)]
+        self.degree = [[0 for i in range(n)] for j in range(n)]
+        self.adjacency =  [[0 for i in range(n)] for j in range(n)]
         self.cities = list()
         self.city_to_i = dict()
 
@@ -37,6 +37,19 @@ class GraphTopology:
         return [row[start_col:end_col] for row in matrix[start_row:end_row]]
 
     #Create a new adjacency matrix based on claims
+    def getLaplacian(self,game):
+        self.routes = game.get_edge_claims()
+        self.initialize_matrices(len(self.routes))
+
+        for route in self.routes:
+            for route in self.routes:
+                #city_weight;
+                if()
+
+
+                A[i][j] =
+
+
     def update_game_board(self,game):
         self.initialize_matrices()
         self.routes = game.get_edge_claims()
@@ -66,13 +79,20 @@ class GraphTopology:
         self.adjacency = self.get_2d_list_slice(self.adjacency,0,i,0,i)
         self.degree = self.get_2d_list_slice(self.degree,0,i,0,i)
 
-        print self.degree
+        #print self.degree
         self.laplacian = np.subtract(self.degree, self.adjacency)
-        print len(self.laplacian)
-        print self.laplacian
+        #print len(self.laplacian)
+        #print self.laplacian
 
-    def get_edge(self):
+    def get_most_harmful_edge(self):
+
         w,v = np.linalg.eig(self.laplacian)
-        return w 
+        print v
+        i = 0
+        j = 0
+        #for city1 in self.cities:
+        #    for city2 in self.cities:
+        return 0
+        #return edge
 
 

@@ -30,11 +30,12 @@ class AdversarialAI(Player):
         remaining_edges = []
         path = None
 
-        """
-        # Get all paths.
-        all_paths = find_paths_for_destinations(info.destinations, self.city_edges, info.num_cars, player=self,
-                                                edge_claims=edge_claims, sort_method=self.sort_method)
+        edges = self.graph_topology.get_most_harmful_edge()
 
+        # Get most compromising pathes.
+        #all_paths = find_paths_for_destinations(info.destinations, self.city_edges, info.num_cars, player=self,
+        #                                        edge_claims=edge_claims, sort_method=self.sort_method)
+        """
         if not all_paths or game.cards_in_deck() == 0:
             # Random action for now when no paths remain to check.
             # TODO: Instead of behaving randomly, try to get the edges that will get you the most points.
