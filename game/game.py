@@ -160,6 +160,34 @@ class Game:
         """
         return deepcopy(self._history)
 
+    def get_player_destination_counts(self):
+        """
+        Gets the destination counts of each player.
+
+        :return: A dictionary with each player name as a key and the number of destinations they have as a value.
+        """
+        result = {}
+
+        for player in self._players:
+            player_info = self._player_info[player]
+            result[player.name] = len(player_info.destinations) + len(player_info.completed_destinations)
+
+        return result
+
+    def get_player_hand_counts(self):
+        """
+        Gets the hand counts of each player.
+
+        :return: A dictionary with each player name as a key and the number of cards they have as a value.
+        """
+        result = {}
+
+        for player in self._players:
+            player_info = self._player_info[player]
+            result[player.name] = len(player_info.hand)
+
+        return result
+
     def cards_in_deck(self):
         """
         Determine how many cards are left in the deck.
