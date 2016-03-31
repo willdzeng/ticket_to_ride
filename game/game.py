@@ -160,6 +160,20 @@ class Game:
         """
         return deepcopy(self._history)
 
+    def get_player_car_counts(self):
+        """
+        Gets the car counts of each player.
+
+        :return: A dictionary with each player name as a key and the number of cars they have as a value.
+        """
+        result = {}
+
+        for player in self._players:
+            player_info = self._player_info[player]
+            result[player.name] = len(player_info.num_cars)
+
+        return result
+
     def get_player_destination_counts(self):
         """
         Gets the destination counts of each player.
