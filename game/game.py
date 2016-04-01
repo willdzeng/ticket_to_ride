@@ -40,12 +40,16 @@ class Game:
         # Initialize info for all players.
         self._player_info = {}
         for player in players:
-            score = 0
-            self._player_info[player] = PlayerInfo(self._num_cars, score)
+            # initialize the player info first
+            self._player_info[player] = PlayerInfo()
+            player_info = self._player_info[player]
+            # set player's number of cars
+            player_info.num_cars = num_cars
+
             # Give each player a hand of 5 cards from the top of the deck.
             # noinspection PyUnusedLocal
             hand = Hand([self._deck.pop() for x in range(self.STARTING_HAND_SIZE)])
-            self._player_info[player].hand = hand
+            player_info.hand = hand
 
             # Give each player 3 destinations.
             possible_destinations = [self._destinations.pop(), self._destinations.pop(),
@@ -57,6 +61,7 @@ class Game:
             if len(destinations) < 2:
                 raise Exception("Failure", FailureCause.str(FailureCause.not_enough_destinations))
 
+            score = 0
             for destination in destinations:
                 # Make sure the destination card is in the possible_destination cards set
                 if destination not in possible_destinations:
@@ -66,8 +71,11 @@ class Game:
                 score -= destination.value
             print player,"selected tickets",destinations
 
-            self._player_info[player].destinations = destinations
-            self._player_info[player].score = score
+            # set the selected destinations
+            player_info.destinations = destinations
+
+            # set the player's calculated score
+            player_info.score = score
 
 
         # Visible scores are set to zero.
