@@ -43,6 +43,8 @@ while not game.is_game_over()[0]:
             # Perform action.
             action_result = game.perform_action(player, action_to_perform)
 
+            player.on_action_complete(game, action_result)
+
             # Print results.  This happens after the action is performed so the timing is correct when drawing
             # destinations.
             if print_debug:

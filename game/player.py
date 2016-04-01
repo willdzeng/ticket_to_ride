@@ -25,10 +25,20 @@ class Player:
         """
         return ""
 
+    def on_action_complete(self, game, result):
+        """
+        A callback that is performed on the player after the player performs an action.
+
+        :param game:
+        :param result: The result of the action, which will be a tuple with a boolean for success and a failure cause.
+        """
+        pass
+
     def select_destinations(self, game, destinations):
         """
         Selects up to three but at least one of the the destinations this player has drawn.
 
+        :param game:
         :param destinations: A list of the destinations to select from.
         :return: A sublist of the destinations passed in with at least one element.
         """
@@ -40,6 +50,7 @@ class Player:
         """
         Selects up to three but at least one of the the destinations this player has drawn.
 
+        :param game:
         :param destinations: A list of the destinations to select from.
         :return: A sublist of the destinations passed in with at least one element.
         """

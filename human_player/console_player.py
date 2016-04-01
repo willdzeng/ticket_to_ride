@@ -1,20 +1,24 @@
-from game import Player, Colors, DrawDeckAction, DrawFaceUpAction, DrawDestinationAction, Game, Hand
+from game import Player, Colors, DrawDeckAction, DrawFaceUpAction, DrawDestinationAction, Game, Hand, FailureCause
 
 
 class ConsolePlayer(Player):
     """
     A Human player that uses the console to play the game.
     """
+
     def __init__(self, name):
         Player.__init__(self, name)
+        self._drew_card_from_deck = False
+        self.player_info = None
 
     def take_turn(self, game):
+        self._drew_card_from_deck = False
         action = None
         all_actions = game.get_available_actions(self)
-        player_info = game.get_player_info(self)
+        self.player_info = game.get_player_info(self)
 
         print "Scores: %s" % game.get_visible_scores()
-        print "Status: %s" % player_info
+        print "Status: %s" % self.player_info
 
         # Loop until there is an action to take.
         while action is None:
@@ -26,8 +30,9 @@ class ConsolePlayer(Player):
                 print "1: Draw Tickets"
                 print "2: Connect Cities"
 
-                action_type = int(raw_input("Selection: "))
+                action_type = ConsolePlayer.get_selection()
             else:
+                # If there is only one action left, just force the player to draw.
                 action_type = 0
 
             if action_type == 0:
@@ -43,12 +48,14 @@ class ConsolePlayer(Player):
                     if face_up_cards[i] != Colors.none or game.get_remaining_actions(self) != 1:
                         print "%d: %s" % (i + 1, Colors.str_card(face_up_cards[i]))
 
-                print "%d: Cancel" % (len(face_up_cards) + 1)
+                if game.get_remaining_actions(self) != 1:
+                    print "%d: Cancel" % (len(face_up_cards) + 1)
 
-                selection = int(raw_input("Selection: "))
+                selection = ConsolePlayer.get_selection()
 
                 if selection == 0:
                     action = DrawDeckAction()
+                    self._drew_card_from_deck = True
                 elif 0 < selection <= len(face_up_cards):
                     if face_up_cards[selection - 1] != Colors.none or game.get_remaining_actions(self) != 1:
                         action = DrawFaceUpAction(selection - 1, face_up_cards[selection - 1])
@@ -75,11 +82,11 @@ class ConsolePlayer(Player):
 
                 print "%d: Cancel" % (len(edges_seen))
 
-                selection = int(raw_input("Selection: "))
+                selection = ConsolePlayer.get_selection()
 
                 if 0 <= selection < len(edges_seen):
                     # Ask how the user would like to claim the edge.
-                    possible_actions = Game.all_connection_actions(edges_seen[selection], player_info.hand.cards)
+                    possible_actions = Game.all_connection_actions(edges_seen[selection], self.player_info.hand.cards)
 
                     print ""
                     print "Choose which cards to use:"
@@ -88,16 +95,34 @@ class ConsolePlayer(Player):
 
                     print "%d: Cancel" % (len(possible_actions))
 
-                    selection = int(raw_input("Selection: "))
+                    selection = ConsolePlayer.get_selection()
 
                     if 0 <= selection < len(possible_actions):
                         action = possible_actions[selection]
 
-        print "\n"
+        print ""
         return action
 
     def game_ended(self, game):
         pass
+
+    def on_action_complete(self, game, result):
+        if not result[0]:
+            # Print action failure, which should never happen.
+            print "Action failed: %s" % FailureCause.str(result[1])
+            print ""
+        elif self._drew_card_from_deck:
+            # If the player just drew a card from the deck, then figure out what the new card is and output the result.
+            old_cards = self.player_info.hand.cards
+            new_cards = game.get_player_info(self).hand.cards
+
+            new_cards.subtract(old_cards)
+
+            # There should only be one card in the counter that results from the difference of the new hand with the
+            # old one.
+            for card in new_cards.elements():
+                print "Drew Card: %s" % Colors.str_card(card)
+                print ""
 
     def select_destinations(self, game, destinations):
         # Choice will indicate which destination the player chose to remove.
@@ -109,7 +134,7 @@ class ConsolePlayer(Player):
             for i in range(len(destinations)):
                 print "%d: %s" % (i + 1, str(destinations[i]))
 
-            selection = int(raw_input("Selection: "))
+            selection = ConsolePlayer.get_selection()
 
             if selection != 0:
                 del destinations[selection - 1]
@@ -131,7 +156,7 @@ class ConsolePlayer(Player):
             for i in range(len(destinations)):
                 print "%d: %s" % (i + 1, str(destinations[i]))
 
-            selection = int(raw_input("Selection: "))
+            selection = ConsolePlayer.get_selection()
 
         if selection != 0:
             del destinations[selection - 1]
@@ -139,3 +164,17 @@ class ConsolePlayer(Player):
         print ""
 
         return destinations
+
+    @staticmethod
+    def get_selection():
+        """
+        Get a user's selection for the next move.
+
+        :return: An integer indicating what the user selected, or -1 if the user made an invalid selection.
+        """
+        selection = raw_input("Selection: ")
+
+        if not selection.isdigit():
+            return -1
+        else:
+            return int(selection)
