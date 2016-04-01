@@ -100,11 +100,11 @@ class Hand:
 
 
 class PlayerInfo:
-    def __init__(self, hand, destinations, num_cars, score=0):
+    def __init__(self, num_cars, score=0):
         self.score = score
-        self.destinations = destinations
+        self.destinations = None
         self.completed_destinations = []
-        self.hand = hand
+        self.hand = None
         self.num_cars = num_cars
 
     def __str__(self):
@@ -115,6 +115,14 @@ class PlayerInfo:
                "\tCompleted Destinations: [%s]}" % (str(self.score), str(self.hand), str(self.num_cars),
                                                     ", ".join(map(str, self.destinations)),
                                                     ", ".join(map(str, self.completed_destinations)))
+    def set_score(self,score):
+        self.score = score
+
+    def set_destinations(self,destinations):
+        self.destinations = destinations
+
+    def set_hand(self,hand):
+        self.hand = hand
 
 
 class Path:

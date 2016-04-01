@@ -287,7 +287,22 @@ class CFBaseAI(Player):
         :return: A sub-list of the destinations passed in with at least one element.
         """
         # TODO: Need to add rules to select destination at the beginning of the game
-        selected_destinations = destinations
+        self.info = game.get_player_info(self)
+        self.edge_claims = game.get_edge_claims()
+        combinations = [[0,1],[1,2],[0,2],[0,1,2]]
+        possible_destination_comb = []
+        costs = []
+
+        for combination in combinations:
+            possible_destination = []
+            for index in combination:
+                possible_destination.append(destinations[index])
+            path,all_path = self.find_best_path(game,possible_destination)
+            possible_destination_comb.append(possible_destination)
+            costs.append(path.cost)
+
+        min_index = costs.index(min(costs))
+        selected_destinations = possible_destination_comb[min_index]
 
         return selected_destinations
 

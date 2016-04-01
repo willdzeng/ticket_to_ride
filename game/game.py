@@ -34,19 +34,24 @@ class Game:
 
         self._players = players
 
+        # Initialize edge claims
+        self._edge_claims = {edge: None for edge in self._edges}
+
         # Initialize info for all players.
         self._player_info = {}
         for player in players:
+            score = 0
+            self._player_info[player] = PlayerInfo(self._num_cars, score)
             # Give each player a hand of 5 cards from the top of the deck.
             # noinspection PyUnusedLocal
             hand = Hand([self._deck.pop() for x in range(self.STARTING_HAND_SIZE)])
-
-            score = 0
+            self._player_info[player].hand = hand
 
             # Give each player 3 destinations.
             possible_destinations = [self._destinations.pop(), self._destinations.pop(),
                                      self._destinations.pop()]
 
+            print player,"is selecting initial tickets"
             destinations = player.select_starting_destinations(self, possible_destinations)
 
             if len(destinations) < 2:
@@ -59,8 +64,11 @@ class Game:
 
                 # Reduce score by all incomplete destinations.
                 score -= destination.value
+            print player,"selected tickets",destinations
 
-            self._player_info[player] = PlayerInfo(hand, destinations, self._num_cars, score)
+            self._player_info[player].destinations = destinations
+            self._player_info[player].score = score
+
 
         # Visible scores are set to zero.
         self._visible_scores = {player.name: 0 for player in self._players}
@@ -75,8 +83,7 @@ class Game:
         # The number of actions the player has left to take this turn.
         self._num_actions_remaining = 2
 
-        # Initialize edge claims
-        self._edge_claims = {edge: None for edge in self._edges}
+
 
         self._game_is_over = False
 
