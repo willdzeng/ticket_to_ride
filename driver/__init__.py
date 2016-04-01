@@ -8,8 +8,8 @@ from game.classes import FailureCause
 from gui import gui
 from human_player.console_player import ConsolePlayer
 
-# p1 = CheapestPathAI("P1")
-p1 = ConsolePlayer("Human")
+p1 = CheapestPathAI("P1")
+# p1 = ConsolePlayer("Human")
 # p2 = Player("P2")
 p2 = CheapestPathAI("P2")
 # p2 = GreedyAI("P2")

@@ -5,14 +5,14 @@ from random import shuffle
 
 from actions import *
 from board import create_board, get_scoring
-from cards import init_decks, shuffle_deck
+from cards import init_decks, shuffle_deck, shuffle_destinations
 from classes import PlayerInfo, FailureCause, HistoryEvent, Hand
 from methods import connected
 
 
 class Game:
     STARTING_HAND_SIZE = 4
-    DEFAULT_NUM_CARS = 45
+    DEFAULT_NUM_CARS = 70 #45
 
     def __init__(self, players, maximum_rounds=5000, custom_settings=False, city_edges=None, edges=None, deck=None,
                  destinations=None, num_cars=45):
@@ -376,9 +376,11 @@ class Game:
         :param player: the player to draw the cards
         :return: If the action success or not
         """
-        possible_destinations = [self._destinations.pop(),
-                                 self._destinations.pop(),
-                                 self._destinations.pop()]
+        possible_destinations = []
+        for i in range(3):
+            possible_destinations += [self._destinations.pop()]
+            if not self._destinations:
+                self._destinations = shuffle_destinations()
 
         # call player's select destination function to confirm which card it want to keep
         selected_destinations = player.select_destinations(self, possible_destinations)

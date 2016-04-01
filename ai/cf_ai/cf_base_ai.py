@@ -23,7 +23,7 @@ class CFBaseAI(Player):
 
     def __init__(self, name):
         Player.__init__(self, name)
-        self.city_edges, edges = create_board()
+        self.city_edges, self.edges = create_board()
         self.path = None
         self.path_costs = {}
         self.edge_costs = {}
@@ -63,22 +63,29 @@ class CFBaseAI(Player):
                     path_clear = False
 
         # Get the path to work with only if it either does not exist or one of the old path's routes has been taken.
-        if self.path is None or not path_clear:
-            self.path, self.all_paths = self.find_best_path(game, info.destinations)
+        # if we have destination cards, plan a path based on them
+        if info.destinations:
+            if self.path is None or not path_clear:
+                self.path, self.all_paths = self.find_best_path(game, info.destinations)
+        else: # else we don't have path
+            self.path = None
 
-        # if we can't get a path after re-calculate then we need to decide if we want to draw a new destination card
+
         # TODO: need to discuss what should we do if the path search can't find a path but we still have tickets card
         # TODO: Put print statements into separate method.  Maybe have 2 different debug prints?
         print "Path: %s" % self.path
         print "Path is clear" if path_clear else "Path is not clear"
-        # TODO: Bug need to be fixed: have path and it's clear but it doesn't claim route
+        # if we can't get a path after re-calculate then we need to decide if we want to draw a new destination card
         if self.path is None:
             print "#############AI: no path found##############"
-            # Perform correct action when no more destinations are left to take.
+            # Perform correct action when no path is found
             actions = self.on_cant_find_path(game)
         else:
             # Pick an edge in the path and try to take it.
             actions = self.on_select_edge(self.path, self.edge_costs, game)
+
+            for action in actions:
+                print action
 
             # Perform correct action when the player doesn't have enough cards to connect any edge.
             if not actions:
@@ -165,13 +172,13 @@ class CFBaseAI(Player):
         info = self.info
 
         for edge in self.path.edges:
-            if edge_claims[edge] != self.name:
+            # if edge_claims[edge] != self.name:
+            if edge_claims[edge] is None:
                 connection_actions = Game.all_connection_actions(edge, info.hand.cards)
 
                 # Using the first possible action means we will try the action that uses the least wilds.
                 if connection_actions:
                     actions.append(connection_actions[0])
-
         return actions
 
     def on_cant_find_path(self,game):
@@ -184,9 +191,10 @@ class CFBaseAI(Player):
         draw_ticket_action  = []
 
         # if we don't have enough destination, we will see if we want to draw a ticket or not
-        if self.info.destinations:
+        if not self.info.destinations:
             draw_ticket_action = self.on_no_more_destinations(game)
-
+        # TODO: need to discuss if we want to draw a ticket card, but there are routes claimable, should we claim
+        # if we want to draw a ticket card then draw it.
         if draw_ticket_action:
             return draw_ticket_action
 
