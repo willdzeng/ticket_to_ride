@@ -30,7 +30,7 @@ class FailureCause:
     already_claimed_self, not_enough_destinations, wrong_destination_card = range(16)
 
     cause_list = ['None', 'No Route', "Wrong Turn", "Missing Cards", "Incompatible Cards", "Already Drew",
-                  "Invalid Card Index", "Insufficient Cards", "Game Over", "Deck out of Cards", "No Action",
+                  "Invalid Card Index", "Insufficient Cars", "Game Over", "Deck out of Cards", "No Action",
                   "Incorrect Destinations", "Edge Claimed by Opponent", "Edge Claimed by Self",
                   "Not Enough Destination Cards","Incorrect "]
 

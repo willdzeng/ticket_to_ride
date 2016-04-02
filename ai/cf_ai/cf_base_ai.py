@@ -2,9 +2,9 @@ from random import randrange
 
 from game import Player, Game
 from game.actions import *
-from game.board import create_board
+import game.board as board
 from game.methods import find_paths_for_destinations
-
+from game.classes import Colors
 
 class CFBaseAI(Player):
     """
@@ -20,10 +20,11 @@ class CFBaseAI(Player):
     and `on_already_drew`) can also
     be overridden, and correspond to the behavior under certain conditions when taking an edge is not possible.
     """
-
+    Edge_Color_Multiplier = 8
+    Edge_Score_Multiplier = 0.1
     def __init__(self, name):
         Player.__init__(self, name)
-        self.city_edges, self.edges = create_board()
+        self.city_edges, self.edges = board.create_board()
         self.path = None
         self.path_costs = {}
         self.edge_costs = {}
@@ -84,8 +85,8 @@ class CFBaseAI(Player):
             # Pick an edge in the path and try to take it.
             actions = self.on_select_edge(self.path, self.edge_costs, game)
 
-            for action in actions:
-                print action
+            # for action in actions:
+            #     print action
 
             # Perform correct action when the player doesn't have enough cards to connect any edge.
             if not actions:
@@ -142,7 +143,12 @@ class CFBaseAI(Player):
         :param game: The game object.
         :return: An integer for the cost of the path.  Lower numbers mean the path is more likely to be selected.
         """
-        return - path.score
+        cost = 0
+        for edge in path.edges:
+            cost += self.eval_edge(edge,all_paths,game)
+
+        # return - path.score
+        return cost
 
     def eval_edge(self, edge, all_paths, game):
         """
@@ -155,7 +161,17 @@ class CFBaseAI(Player):
         :param game: The game object.
         :return: An integer for the cost of the edge.  Lower numbers mean the edge is more favorable to select.
         """
-        return edge.cost
+        # calculate
+        if edge.color == Colors.none:
+            Kcolor = 1
+        else:
+            Kcolor = self.Edge_Color_Multiplier
+        # color cost
+        cost = Kcolor * edge.cost
+        # score reward
+        cost -= self.Edge_Score_Multiplier * board.get_scoring()[edge.cost]
+
+        return cost
 
     def on_select_edge(self, path, edge_costs, game):
         """
@@ -174,7 +190,7 @@ class CFBaseAI(Player):
         for edge in self.path.edges:
             # if edge_claims[edge] != self.name:
             if edge_claims[edge] is None:
-                connection_actions = Game.all_connection_actions(edge, info.hand.cards)
+                connection_actions = Game.all_connection_actions(edge, info.hand.cards, info.num_cars)
 
                 # Using the first possible action means we will try the action that uses the least wilds.
                 if connection_actions:
@@ -198,11 +214,25 @@ class CFBaseAI(Player):
         if draw_ticket_action:
             return draw_ticket_action
 
+        # get all the connection action first
+        connect_action = []
         for action in self.available_actions:
             if action.is_connect():
-                best_action = [action]
-                break
+                connect_action.append(action)
 
+        # if we have any connection action, find the best one
+        if connect_action:
+            # choose the best connection action based on how much score it has
+            maximum_score = 0
+            best_action_index = 0
+            for index,action in enumerate(connect_action):
+                score = action.edge.cost
+                if score > maximum_score:
+                    maximum_score = score
+                    best_action_index = index
+            best_action = [connect_action[best_action_index]]
+
+        # if we still can't find a good action, then just draw the best card
         if not best_action:
             best_action = self.draw_best_card(game)
 
@@ -298,6 +328,8 @@ class CFBaseAI(Player):
             for index in combination:
                 possible_destination.append(destinations[index])
             path,all_path = self.find_best_path(game,possible_destination)
+            if path is None:
+                path.cost = 10000
             possible_destination_comb.append(possible_destination)
             costs.append(path.cost)
 

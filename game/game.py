@@ -459,6 +459,8 @@ class Game:
 
             # Cards must match the edge's requirements.
             if not self.cards_match_exact(edge, cards):
+                print player.name,"has cards",self._player_info[player].hands
+                print "Routes need",edge.cost,"cars"
                 return False, FailureCause.incompatible_cards
 
             # Player must have enough cars.
@@ -520,11 +522,12 @@ class Game:
             result += [DrawFaceUpAction(i, self._face_up_cards[i]) for i in range(5)]
 
             hand = self.get_player_info(player).hand
+            num_cars = self.get_player_info(player).num_cars
 
             # Add the ability to connect any connectible cities.
             for edge in self._edge_claims:
                 if self._edge_claims[edge] is None:
-                    result += self.all_connection_actions(edge, hand.cards)
+                    result += self.all_connection_actions(edge, hand.cards, num_cars)
 
         else:  # action remain == 1
             # If only one action remains, then only allow non-wild face-up draws.
@@ -557,7 +560,7 @@ class Game:
         return result
 
     @staticmethod
-    def all_connection_actions(edge, cards):
+    def all_connection_actions(edge, cards, num_cars):
         """
         Gets all available connection actions available given a certain set of cards for a certain edge.
         :param edge: The edge to check.
@@ -569,7 +572,9 @@ class Game:
         # A short circuit in case there definitely can't be enough cards.
         if edge.cost > cards.most_common(1)[0][1] + cards[Colors.none]:
             return result
-
+        # check if the player has enough number of cars
+        if edge.cost > num_cars:
+            return result
         # Route has no color.
         if edge.color == Colors.none:
             for card in cards:
