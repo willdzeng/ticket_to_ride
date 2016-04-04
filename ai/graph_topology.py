@@ -10,7 +10,7 @@ class GraphTopology:
     Adjacency = None
     cities = list()
     routes = None
-
+    self.enemy_cities = list()
     def __init__(self):
         pass
     """
@@ -59,7 +59,7 @@ class GraphTopology:
             for city in self.get_adjacent_cities(routes,player):
                 if(city not in burned_cities):
                     burning_cities.append([city, actual_depth])
-            if(len(burning_cities) >  1 & return_on_fork)
+            if(len(burning_cities) >  1 & return_on_fork):
                 depth = actual_depth
                 return burning_cities
         depth = actual_depth
@@ -67,31 +67,47 @@ class GraphTopology:
         return burned_cities
 
 
+
+
     def get_possible_edges(self,player,city,depth):
-        #edge_groups = list()
+        actual_depth = 0
+        burned_cities = list()
+        buringing_cities = list()
+        burning_cities.append([start_city,actual_depth])
+        routes = game.get_edge_claims()
+        while depth > actual_depth:
+            burn_city = burning_cities.pop_front()
+            actual_depth = actual_depth + 1
 
-        return brushfire(city.depth,player,return_on_fork=False,self.routes)
-
-
-
+            for city_edge in self.get_adjacent_cities(routes,player):
+                if(city_edge[0] not in burned_cities):
+                    burning_cities.append([city_edge[0], actual_depth])
+                if(city in enemy_cities):
+                    harmful_edges.append(city_edge[1])
+        depth = actual_depth
+        return harmful_edges
 
     def get_unfilled_enemy_edges(self,player,depth):
-        routes = game.get_edge_claims()
+        self.routes = game.get_edge_claims()
         unfillled_enemy_edge = list()
         # get list of cities which opponent has edges which connect to it
-        enemy_cities = list()
+        self.enemy_cities = list()
         for route in self.routes:
             if route.city1 not in enemy_cities:
-                enemy_cities.append(route.city1)
+                self.enemy_cities.append(route.city1)
             if route.city2 not in enemy_cities:
-                enemy_cities.append(route.city2)
-
-        # for each city
+                self.enemy_cities.append(route.city2)
+        # for each enemy city
         for city in enemy_cities:
             #search for beginings of other paths at depth
-            for edge_group in self.get_possible_edges(player,city,depth):
+            for edge_group in self.get_possible_edges(player,city,depth): #correct?
                 unfilled_enemy_edges.append(edge_group)
         return unfilled_enemy_edges
+
+    def get_most_harmful_edge(self,player):
+        return self.get_unfilled_enemy_edges(player,1)
+
+
 """
     #Create a new adjacency matrix based on claims
     def getLaplacian(self,game):

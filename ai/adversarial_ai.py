@@ -30,12 +30,14 @@ class AdversarialAI(Player):
         remaining_edges = []
         path = None
 
-        edges = self.graph_topology.get_most_harmful_edge()
+        edge = self.graph_topology.get_most_harmful_edge('P2')
+
+
+
 
         # Get most compromising pathes.
         #all_paths = find_paths_for_destinations(info.destinations, self.city_edges, info.num_cars, player=self,
         #                                        edge_claims=edge_claims, sort_method=self.sort_method)
-        """
         if not all_paths or game.cards_in_deck() == 0:
             # Random action for now when no paths remain to check.
             # TODO: Instead of behaving randomly, try to get the edges that will get you the most points.
@@ -45,7 +47,8 @@ class AdversarialAI(Player):
             actions = self.on_already_drew(game)
         else:
             # Try to take an edge.
-            path = all_paths[0]
+            if(edge not in path):
+                path.append(edge)
 
             actions = []
 
@@ -63,7 +66,7 @@ class AdversarialAI(Player):
             # No actions, just draw randomly.
             if not actions:
                 actions = self.on_not_enough_cards(game)
-        """
+
         # Randomly select the action from available actions.
         return actions[randrange(0, len(actions))]
 
