@@ -88,9 +88,9 @@ class Game:
             for edge2 in self._edge_claims:
                 if edge1 is not edge2:
                     if edge1.city1 is edge2.city1 and  edge1.city2 is edge2.city2:
-                        print 'Saying the following are double edges'
-                        print edge1
-                        print edge2 
+                        #print 'Saying the following are double edges'
+                        #print edge1
+                        #print edge2 
                         self._double_edges[edge1] = edge2
 
 
@@ -515,7 +515,7 @@ class Game:
         self._edge_claims[edge] = player.name
         
         if edge in self._double_edges:
-            print 'claiming similar edge'
+            #print 'claiming similar edge'
             self._edge_claims[self._double_edges[edge]] = 'game_rules'
 
 

@@ -30,7 +30,7 @@ class AdversarialAI(Player):
         remaining_edges = []
         path = list()
 
-        edge = self.graph_topology.get_most_harmful_edge('P1')
+        steal_edge = self.graph_topology.get_most_harmful_edge('P1')
 
 
 
@@ -45,15 +45,26 @@ class AdversarialAI(Player):
             # Draw from the deck if that's the only option.
             actions = self.on_already_drew(game)
         else:
-            # Try to take an edge.
-            if(edge):
-                if(not path or edge not in path):
-                    path.append(edge)
-            else:
-                path = all_paths[0]
-                
-
+            path = all_paths[0]
+                        
             actions = []
+            
+
+            # Try to take an edge.
+            if(steal_edge):
+                print 'Taking adversarial Action!!!!!!!!'
+                print 'Want to take edge:'
+                print steal_edge
+                if edge_claims[steal_edge] != self.name:
+                    actions.append(Game.all_connection_actions(steal_edge, info.hand.cards))
+
+                # No actions, then do normal actions
+                if not actions:
+                    print 'Do not have required cards'
+                    actions.pop[0]                         
+                else: 
+                    return actions.pop[0]                          
+                                         
 
             # Pick an edge in the path and try to take it.
             for edge in path.edges:
@@ -63,8 +74,8 @@ class AdversarialAI(Player):
                     # Using the first possible action means we will try the action that uses the least wilds.
                     if connection_actions:
                         actions.append(connection_actions[0])
-
                     remaining_edges.append(edge)
+
 
             # No actions, just draw randomly.
             if not actions:

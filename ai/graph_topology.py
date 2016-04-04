@@ -40,13 +40,14 @@ class GraphTopology:
     def get_adjacent_cities(self,city,routes,player):
         city_edges = list()
         for route in routes:
-            if(route.city1 is city):
-                city_edges.append([city2,route])
-            if(route.city2 is city):
-                city_edges.append([city1,route])
+            if((routes.get(route) or 'unclaimed') is 'unclaimed'):
+                if(str(route.city1) == str(city)):
+                    city_edges.append([route.city2,route])
+                if(str(route.city2) == str(city)):
+                    city_edges.append([route.city1,route])
         return city_edges
         
-
+    """
     def brushfire_from(self,start_city,depth,player,return_on_fork,routes):
         actual_depth = 0
         burned_cities = list()
@@ -65,9 +66,7 @@ class GraphTopology:
         depth = actual_depth
 
         return burned_cities
-
-
-
+    """
 
     def get_possible_edges(self,player,start_city,depth):
         actual_depth = 0
@@ -78,10 +77,10 @@ class GraphTopology:
         while depth > actual_depth:
             burn_city = burning_cities.pop(0)
             actual_depth = actual_depth + 1
-            for city_edge in self.get_adjacent_cities(burn_city,self.routes,player):
+            for city_edge in self.get_adjacent_cities(burn_city[0],self.routes,player):
                 if(city_edge[0] not in burned_cities):
                     burning_cities.append([city_edge[0], actual_depth])
-                if(city in self.enemy_cities):
+                if(city_edge[0] in self.enemy_cities):
                     harmful_edges.append(city_edge[1])
         depth = actual_depth
         return harmful_edges
@@ -91,10 +90,11 @@ class GraphTopology:
         # get list of cities which opponent has edges which connect to it
         self.enemy_cities = list()
         for route in self.routes:
-            if route.city1 not in self.enemy_cities:
-                self.enemy_cities.append(route.city1)
-            if route.city2 not in self.enemy_cities:
-                self.enemy_cities.append(route.city2)
+            if self.routes.get(route) is player:
+                if route.city1 not in self.enemy_cities:
+                    self.enemy_cities.append(route.city1)
+                if route.city2 not in self.enemy_cities:
+                    self.enemy_cities.append(route.city2)
         # for each enemy city
         for city in self.enemy_cities:
             #search for beginings of other paths at depth
