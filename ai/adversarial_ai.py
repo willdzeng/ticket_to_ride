@@ -18,9 +18,9 @@ class AdversarialAI(Player):
         self.city_edges, edges = create_board()
         self.sort_method = lambda path: -path.score
         self.graph_topology = GraphTopology()
-        self.graph_topology.set_claim_value('P2',0.0)
-        self.graph_topology.set_claim_value('unclaimed',0.5)
-        self.graph_topology.set_claim_value('P1',1.0)
+        #self.graph_topology.set_claim_value('P2',0.0)
+        #self.graph_topology.set_claim_value('unclaimed',0.5)
+        #self.graph_topology.set_claim_value('P1',1.0)
 
 
     def take_turn(self, game):
@@ -28,16 +28,15 @@ class AdversarialAI(Player):
         info = game.get_player_info(self)
         edge_claims = game.get_edge_claims()
         remaining_edges = []
-        path = None
+        path = list()
 
-        edge = self.graph_topology.get_most_harmful_edge('P2')
+        edge = self.graph_topology.get_most_harmful_edge('P1')
 
 
 
 
         # Get most compromising pathes.
-        #all_paths = find_paths_for_destinations(info.destinations, self.city_edges, info.num_cars, player=self,
-        #                                        edge_claims=edge_claims, sort_method=self.sort_method)
+        all_paths = find_paths_for_destinations(info.destinations, self.city_edges, info.num_cars, player=self,edge_claims=edge_claims, sort_method=self.sort_method)
         if not all_paths or game.cards_in_deck() == 0:
             # Random action for now when no paths remain to check.
             # TODO: Instead of behaving randomly, try to get the edges that will get you the most points.
@@ -47,8 +46,12 @@ class AdversarialAI(Player):
             actions = self.on_already_drew(game)
         else:
             # Try to take an edge.
-            if(edge not in path):
-                path.append(edge)
+            if(edge):
+                if(not path or edge not in path):
+                    path.append(edge)
+            else:
+                path = all_paths[0]
+                
 
             actions = []
 

@@ -14,7 +14,7 @@ p2 = AdversarialAI("P2")
 
 players = [p1, p2]
 
-use_gui =False
+use_gui =True
 print_debug = True
 maximum_rounds = 5000
 
@@ -55,6 +55,7 @@ for player in players:
 print "Game Over"
 print "Winner: %s" % game.is_game_over()[1]
 print "Final Scores: %s" % game.get_visible_scores()
+print game.get_edge_claims()
 
 if use_gui:
     game_gui.update_game_ended(game)

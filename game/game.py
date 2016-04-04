@@ -18,19 +18,18 @@ class Game:
         if not custom_settings:
             self._city_edges, self._edges = create_board()
             self._deck, self._destinations = init_decks()
-
             self._num_cars = 45
         else:
             self._city_edges = city_edges
             self._edges = edges
             self._deck = deck
             self._destinations = destinations
-
+            
             self._num_cars = num_cars
         self._maximum_rounds = maximum_rounds
         self._rounds_count = 0
         self._scoring = get_scoring()
-
+        self._double_edges = dict()
         self._players = players
 
         # Initialize info for all players.
@@ -67,6 +66,8 @@ class Game:
 
         # Initialize edge claims
         self._edge_claims = {edge: None for edge in self._edges}
+        if len(players) < 4: # tracking double edges in 2 and 3 player games
+            self._track_double_edges()
 
         self._game_is_over = False
 
@@ -78,6 +79,20 @@ class Game:
 
         # Store the last actions taken.
         self._last_actions = []
+
+    def _track_double_edges(self):
+        """
+        populate dictionary of edges which connect the same city
+        """
+        for edge1 in self._edge_claims:
+            for edge2 in self._edge_claims:
+                if edge1 is not edge2:
+                    if edge1.city1 is edge2.city1 and  edge1.city2 is edge2.city2:
+                        print 'Saying the following are double edges'
+                        print edge1
+                        print edge2 
+                        self._double_edges[edge1] = edge2
+
 
     def get_edge_claims(self):
         """
@@ -492,8 +507,17 @@ class Game:
 
         :param edge:
         :param player:
+        
+        In addition, if there is a similar edge which connects two cities, then this edge will be claimed
+        by "game_rules"
         """
+
         self._edge_claims[edge] = player.name
+        
+        if edge in self._double_edges:
+            print 'claiming similar edge'
+            self._edge_claims[self._double_edges[edge]] = 'game_rules'
+
 
     def _edge_is_claimed(self, edge):
         """
