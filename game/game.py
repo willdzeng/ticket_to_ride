@@ -12,7 +12,7 @@ from methods import connected
 
 class Game:
     STARTING_HAND_SIZE = 4
-    DEFAULT_NUM_CARS = 70 #45
+    DEFAULT_NUM_CARS = 45
 
     def __init__(self, players, maximum_rounds=5000, custom_settings=False, city_edges=None, edges=None, deck=None,
                  destinations=None, num_cars=45):

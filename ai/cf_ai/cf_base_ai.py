@@ -1,10 +1,11 @@
 from random import randrange
 
+import game.board as board
 from game import Player, Game
 from game.actions import *
-import game.board as board
-from game.methods import find_paths_for_destinations
 from game.classes import Colors
+from game.methods import find_paths_for_destinations
+
 
 class CFBaseAI(Player):
     """
@@ -22,6 +23,10 @@ class CFBaseAI(Player):
     """
     Edge_Color_Multiplier = 8
     Edge_Score_Multiplier = 0.1
+    Wild_Card_Cost = 8
+    Ticket_Score_Multiplier = 2
+    debug = True
+
     def __init__(self, name):
         Player.__init__(self, name)
         self.city_edges, self.edges = board.create_board()
@@ -68,17 +73,16 @@ class CFBaseAI(Player):
         if info.destinations:
             if self.path is None or not path_clear:
                 self.path, self.all_paths = self.find_best_path(game, info.destinations)
-        else: # else we don't have path
+        else:  # else we don't have path
             self.path = None
-
 
         # TODO: need to discuss what should we do if the path search can't find a path but we still have tickets card
         # TODO: Put print statements into separate method.  Maybe have 2 different debug prints?
-        print "Path: %s" % self.path
-        print "Path is clear" if path_clear else "Path is not clear"
+        if self.debug: print "Path: %s" % self.path
+        if self.debug: print "Path is clear" if path_clear else "Path is not clear"
         # if we can't get a path after re-calculate then we need to decide if we want to draw a new destination card
         if self.path is None:
-            print "#############AI: no path found##############"
+            if self.debug: print "#############AI: no path found##############"
             # Perform correct action when no path is found
             actions = self.on_cant_find_path(game)
         else:
@@ -145,7 +149,7 @@ class CFBaseAI(Player):
         """
         cost = 0
         for edge in path.edges:
-            cost += self.eval_edge(edge,all_paths,game)
+            cost += self.eval_edge(edge, all_paths, game)
 
         # return - path.score
         return cost
@@ -182,29 +186,70 @@ class CFBaseAI(Player):
         will call `on_cant_select_edge`.
         """
         # Default: Select random edge that is playable.
-        actions = []
 
         edge_claims = self.edge_claims
         info = self.info
 
+        all_connection_actions = []
+
+        # TODO: need to add select one action that use least of our required cards
+        cards_needed = self.get_cards_needed(self.path)
+
+        # get all the connection action first
         for edge in self.path.edges:
+
             # if edge_claims[edge] != self.name:
             if edge_claims[edge] is None:
                 connection_actions = Game.all_connection_actions(edge, info.hand.cards, info.num_cars)
 
                 # Using the first possible action means we will try the action that uses the least wilds.
                 if connection_actions:
-                    actions.append(connection_actions[0])
-        return actions
+                    all_connection_actions += connection_actions
 
-    def on_cant_find_path(self,game):
+        best_action = []
+        # if we have any connection action, we choose the best one
+        if all_connection_actions:
+            # evaluate every action based on a cost function
+            min_index = 0
+            min_cost = 100000
+            for index, action in enumerate(all_connection_actions):
+                cost = 0
+                for card in action.cards:
+                    if card == Colors.none:
+                        cost += self.Wild_Card_Cost
+                    else:
+                        cost += 1
+                cost -= self.Edge_Score_Multiplier * board.get_scoring()[action.edge.cost]
+                if self.debug: print action, "has cost", cost
+                if cost < min_cost:
+                    min_cost = cost
+                    min_index = index
+
+            best_action = [all_connection_actions[min_index]]
+
+        # return actions
+        return best_action
+
+    def get_cards_needed(self,path):
+        """
+        get the cards needed of giving path
+        :param path: the path to evaluate
+        :return: the cards dictionary {card_index : number_of_cards}
+        """
+        cards_needed = {i:0 for i in range(9)}
+        if path is not None:
+            for edge in path.edges:
+                cards_needed[edge.color] += edge.cost
+        return cards_needed
+
+    def on_cant_find_path(self, game):
         """
         Execute when it can't find any path
         :param game:
         :return: the actions to perform, list of action
         """
         best_action = []
-        draw_ticket_action  = []
+        draw_ticket_action = []
 
         # if we don't have enough destination, we will see if we want to draw a ticket or not
         if not self.info.destinations:
@@ -225,7 +270,7 @@ class CFBaseAI(Player):
             # choose the best connection action based on how much score it has
             maximum_score = 0
             best_action_index = 0
-            for index,action in enumerate(connect_action):
+            for index, action in enumerate(connect_action):
                 score = action.edge.cost
                 if score > maximum_score:
                     maximum_score = score
@@ -246,8 +291,6 @@ class CFBaseAI(Player):
         :return: The actions to perform.  Will randomly pick from the list of actions.
         """
         return self.draw_best_card(game)
-
-
 
     def on_no_more_destinations(self, game):
         """
@@ -316,10 +359,10 @@ class CFBaseAI(Player):
         :param destinations: A list of the destinations to select from.
         :return: A sub-list of the destinations passed in with at least one element.
         """
-        # TODO: Need to add rules to select destination at the beginning of the game
+        # selecting the best combination of ticket cards by using cost - K * score
         self.info = game.get_player_info(self)
         self.edge_claims = game.get_edge_claims()
-        combinations = [[0,1],[1,2],[0,2],[0,1,2]]
+        combinations = [[0, 1], [1, 2], [0, 2], [0, 1, 2]]
         possible_destination_comb = []
         costs = []
 
@@ -327,11 +370,13 @@ class CFBaseAI(Player):
             possible_destination = []
             for index in combination:
                 possible_destination.append(destinations[index])
-            path,all_path = self.find_best_path(game,possible_destination)
+            path, all_path = self.find_best_path(game, possible_destination)
             if path is None:
-                path.cost = 10000
-            possible_destination_comb.append(possible_destination)
-            costs.append(path.cost)
+                costs.append(10000)
+                possible_destination_comb.append(possible_destination)
+            else:
+                possible_destination_comb.append(possible_destination)
+                costs.append(path.cost - self.Ticket_Score_Multiplier * path.score)
 
         min_index = costs.index(min(costs))
         selected_destinations = possible_destination_comb[min_index]
@@ -339,6 +384,11 @@ class CFBaseAI(Player):
         return selected_destinations
 
     def debug_print(self, game):
+        '''
+        print some more detailed info, activated by the game manager
+        :param game:
+        :return:
+        '''
         remaining_edges = self.path.edges - game.get_edges_for_player(self) if self.path is not None else []
 
         return "Path:%s\nRemaining Edges: [%s]" % (str(self.path), ", ".join([str(edge) for edge in remaining_edges]))
