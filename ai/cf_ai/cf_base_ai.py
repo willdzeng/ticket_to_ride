@@ -21,12 +21,12 @@ class CFBaseAI(Player):
     and `on_already_drew`) can also
     be overridden, and correspond to the behavior under certain conditions when taking an edge is not possible.
     """
-    Edge_Color_Multiplier = 8 # used when calculate how much a edge cost when it's color is not none
-    Edge_Score_Multiplier = 0.1 # used to reward a edge based on it's score
-    Wild_Card_Cost = 8 # used when claiming routes, how much this claiming action cost when it's using wild card
-    Wild_Card_Value = 3 # used when selecting the best cards to evaluate how much a wild card values
-    Ticket_Score_Multiplier = 2 # used when selecting ticket
-    debug = True # enable to print more debug stuff
+    Edge_Color_Multiplier = 8  # used when calculate how much a edge cost when it's color is not none
+    Edge_Score_Multiplier = 0.1  # used to reward a edge based on it's score
+    Wild_Card_Cost = 8  # used when claiming routes, how much this claiming action cost when it's using wild card
+    Wild_Card_Value = 3  # used when selecting the best cards to evaluate how much a wild card values
+    Ticket_Score_Multiplier = 2  # used when selecting ticket
+    debug = True  # enable to print more debug stuff
 
     def __init__(self, name):
         Player.__init__(self, name)
@@ -39,13 +39,13 @@ class CFBaseAI(Player):
         self.edge_claims = None
 
     def take_turn(self, game):
-
         # update game state first
         self.info = game.get_player_info(self)
         self.edge_claims = game.get_edge_claims()
         self.available_actions = game.get_available_actions(self)
         self.face_up_cards = game.get_face_up_cards()
         self.action_remaining = game.get_remaining_actions(self)
+
         # the first thing to check is if we already drew.
         # then we don't need to calculate anything but draw another card
         if self.action_remaining == 1:
@@ -80,19 +80,19 @@ class CFBaseAI(Player):
 
         # TODO: need to discuss what should we do if the path search can't find a path but we still have tickets card
         # TODO: Put print statements into separate method.  Maybe have 2 different debug prints?
-        if self.debug: print "Path: %s" % self.path
-        if self.debug: print "Path is clear" if path_clear else "Path is not clear"
+        if self.debug:
+            print "Path: %s" % self.path
+            print "Path is clear" if path_clear else "Path is not clear"
+
         # if we can't get a path after re-calculate then we need to decide if we want to draw a new destination card
         if self.path is None:
-            if self.debug: print "#############AI: no path found##############"
+            if self.debug:
+                print "############# AI: no path found ##############"
             # Perform correct action when no path is found
             actions = self.on_cant_find_path(game)
         else:
             # Pick an edge in the path and try to take it.
             actions = self.on_select_edge(self.path, self.edge_costs, game)
-
-            # for action in actions:
-            #     print action
 
             # Perform correct action when the player doesn't have enough cards to connect any edge.
             if not actions:
@@ -231,13 +231,13 @@ class CFBaseAI(Player):
         # return actions
         return best_action
 
-    def get_cards_needed(self,path):
+    def get_cards_needed(self, path):
         """
         get the cards needed of giving path
         :param path: the path to evaluate
         :return: the cards dictionary {card_index : number_of_cards}
         """
-        cards_needed = {i:0 for i in range(9)}
+        cards_needed = {i: 0 for i in range(9)}
         if path is not None:
             for edge in path.edges:
                 cards_needed[edge.color] += edge.cost
@@ -300,7 +300,6 @@ class CFBaseAI(Player):
         :param game: The game object.
         :return: The action(s) to perform.  Will randomly pick from the list of actions.
         """
-        # Default: Play randomly.
         # TODO: Need to figure out a rule of when to draw destination card
         action = []
         if self.info.num_cars > 20:
@@ -325,7 +324,6 @@ class CFBaseAI(Player):
         :param game:
         :return:
         """
-        # TODO: need to add draw face up card based on the current path.
         cards_needed = self.get_cards_needed(self.path)
         values = []
         if cards_needed:
@@ -342,9 +340,9 @@ class CFBaseAI(Player):
                 else:
                     values.append(cards_needed[card])
             best_card_index = values.index(max(values))
-            action = DrawFaceUpAction(best_card_index,self.face_up_cards[best_card_index])
+            action = DrawFaceUpAction(best_card_index, self.face_up_cards[best_card_index])
         else:
-            action = DrawDeckAction
+            action = DrawDeckAction()
 
         return [action]
 
@@ -355,13 +353,13 @@ class CFBaseAI(Player):
         :param destinations: A list of the destinations to select from.
         :return: A sub-list of the destinations passed in with at least one element.
         """
-        # TODO: Need to add rules to select destination after finished all the destination card
+        # TODO: Consider possibility of taking more than one.
         destination_cost = []
 
         for destination in destinations:
             path, all_path = self.find_best_path(game, [destination])
             if path is None:
-                destination_cost.append(100)
+                destination_cost.append(10000)
             else:
                 destination_cost.append(path.cost)
 
@@ -404,11 +402,11 @@ class CFBaseAI(Player):
         return selected_destinations
 
     def debug_print(self, game):
-        '''
+        """
         print some more detailed info, activated by the game manager
         :param game:
         :return:
-        '''
+        """
         remaining_edges = self.path.edges - game.get_edges_for_player(self) if self.path is not None else []
 
         return "Path:%s\nRemaining Edges: [%s]" % (str(self.path), ", ".join([str(edge) for edge in remaining_edges]))

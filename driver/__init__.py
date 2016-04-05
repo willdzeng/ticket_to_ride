@@ -5,7 +5,6 @@ from ai.cf_ai.greedy_ai import GreedyAI
 from ai.random_ai import RandomAI
 from game import Game
 from game.classes import FailureCause
-from gui import gui
 from human_player.console_player import ConsolePlayer
 
 p1 = CheapestPathAI("P1")
@@ -25,6 +24,7 @@ maximum_rounds = 1000
 game_gui = None
 
 if use_gui:
+    from gui import gui
     game_gui = gui.GUI()
     # time.sleep(5)
 

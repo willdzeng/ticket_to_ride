@@ -563,8 +563,10 @@ class Game:
     def all_connection_actions(edge, cards, num_cars):
         """
         Gets all available connection actions available given a certain set of cards for a certain edge.
+
         :param edge: The edge to check.
         :param cards: The hand to check the edge against.
+        :param num_cars: The number of cars the player has.
         :return: A list off all possible actions that can be performed with the given hand on the given edge.
         """
         result = []
@@ -572,7 +574,7 @@ class Game:
         # A short circuit in case there definitely can't be enough cards.
         if edge.cost > cards.most_common(1)[0][1] + cards[Colors.none]:
             return result
-        # check if the player has enough number of cars
+        # check if the player has enough cars
         if edge.cost > num_cars:
             return result
         # Route has no color.
