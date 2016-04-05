@@ -40,7 +40,7 @@ class GraphTopology:
     def get_adjacent_cities(self,city,routes,player):
         city_edges = list()
         for route in routes:
-            if((routes.get(route) or 'unclaimed') is 'unclaimed'):
+            if(str(routes.get(route) or 'unclaimed') is str(player)):
                 if(str(route.city1) == str(city)):
                     city_edges.append([route.city2,route])
                 if(str(route.city2) == str(city)):
@@ -52,25 +52,29 @@ class GraphTopology:
         actual_depth = 0
         burned_cities = list()
         burning_cities = list()
+        #print 'Now determining extent'
         burning_cities.append([start_city,actual_depth])
-        while depth > actual_depth:
+        while depth > actual_depth and burning_cities:
             burn_city = burning_cities.pop(0)
-            actual_depth = actual_depth + 1
-            for city in self.get_adjacent_cities(burn_city,routes,player):
+            burned_cities.append(burn_city)
+            for city in self.get_adjacent_cities(burn_city[0],routes,player):
                 if(city not in burned_cities):
-                    burning_cities.append([city, actual_depth])
+                    burning_cities.append([city, actual_depth+1])
             if(len(burning_cities) >  1 & return_on_fork):
-                depth = actual_depth
                 return burning_cities
-        depth = actual_depth
-
-        return burned_cities
+            actual_depth = actual_depth + 1
+        return burned_cities, actual_depth
 
     def get_depth(self,player,city):
-        depth = 10
         return_on_fork = False
-        self.brushfire_from(city,depth,player,return_on_fork,self.routes)
-        return depth
+        depth = 10
+        city_depths =self.brushfire_from(city,depth,player,return_on_fork,self.routes)
+        actual_depth = 1
+        for city_depth in city_depths:
+           if actual_depth < city_depth[1]:
+               actual_depth = city_depth[1]
+
+        return actual_depth
     def get_possible_edges(self,player,start_city,depth):
         actual_depth = 0
         burned_cities = list()
@@ -80,12 +84,13 @@ class GraphTopology:
         while depth > actual_depth:
             burn_city = burning_cities.pop(0)
             actual_depth = actual_depth + 1
-            for city_edge in self.get_adjacent_cities(burn_city[0],self.routes,player):
+            for city_edge in self.get_adjacent_cities(burn_city[0],self.routes,'unclaimed'):
                 if(city_edge[0] not in burned_cities):
                     burning_cities.append([city_edge[0], actual_depth])
                 if(city_edge[0] in self.enemy_cities):
                     cost = self.get_depth(player,city_edge[1].city1) + self.get_depth(player,city_edge[1].city2)
-                    harmful_edges.append([city_edge[1],cost])
+                    #city_edge[1].cost = cost;
+                    harmful_edges.append(city_edge[1])
         depth = actual_depth
         return harmful_edges
 
@@ -107,10 +112,13 @@ class GraphTopology:
         return unfilled_enemy_edges
 
     def get_most_harmful_edge(self,player):
+        
         return self.get_unfilled_enemy_edges(player,1)
 
     def update_game_board(self,game):
         self.routes = game.get_edge_claims()
+        #print 'Here are the routes'
+        #print self.routes
 
 """
     #Create a new adjacency matrix based on claims
