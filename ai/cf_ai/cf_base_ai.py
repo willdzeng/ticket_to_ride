@@ -21,11 +21,12 @@ class CFBaseAI(Player):
     and `on_already_drew`) can also
     be overridden, and correspond to the behavior under certain conditions when taking an edge is not possible.
     """
-    Edge_Color_Multiplier = 8
-    Edge_Score_Multiplier = 0.1
-    Wild_Card_Cost = 8
-    Ticket_Score_Multiplier = 2
-    debug = True
+    Edge_Color_Multiplier = 8 # used when calculate how much a edge cost when it's color is not none
+    Edge_Score_Multiplier = 0.1 # used to reward a edge based on it's score
+    Wild_Card_Cost = 8 # used when claiming routes, how much this claiming action cost when it's using wild card
+    Wild_Card_Value = 3 # used when selecting the best cards to evaluate how much a wild card values
+    Ticket_Score_Multiplier = 2 # used when selecting ticket
+    debug = True # enable to print more debug stuff
 
     def __init__(self, name):
         Player.__init__(self, name)
@@ -43,10 +44,11 @@ class CFBaseAI(Player):
         self.info = game.get_player_info(self)
         self.edge_claims = game.get_edge_claims()
         self.available_actions = game.get_available_actions(self)
-
+        self.face_up_cards = game.get_face_up_cards()
+        self.action_remaining = game.get_remaining_actions(self)
         # the first thing to check is if we already drew.
         # then we don't need to calculate anything but draw another card
-        if game.get_remaining_actions(self) == 1:
+        if self.action_remaining == 1:
             action = self.on_already_drew(game)
             return action[0]
 
@@ -192,7 +194,6 @@ class CFBaseAI(Player):
 
         all_connection_actions = []
 
-        # TODO: need to add select one action that use least of our required cards
         cards_needed = self.get_cards_needed(self.path)
 
         # get all the connection action first
@@ -218,7 +219,7 @@ class CFBaseAI(Player):
                     if card == Colors.none:
                         cost += self.Wild_Card_Cost
                     else:
-                        cost += 1
+                        cost += cards_needed[card]
                 cost -= self.Edge_Score_Multiplier * board.get_scoring()[action.edge.cost]
                 if self.debug: print action, "has cost", cost
                 if cost < min_cost:
@@ -325,8 +326,27 @@ class CFBaseAI(Player):
         :return:
         """
         # TODO: need to add draw face up card based on the current path.
+        cards_needed = self.get_cards_needed(self.path)
+        values = []
+        if cards_needed:
+            for card in self.face_up_cards:
+                # if the card is a wild card
+                if card == Colors.none:
+                    # if we don't have 2 action point
+                    if self.action_remaining == 1:
+                        # append -1 so that it won't choose it at all
+                        values.append(-1)
+                        continue
+                    else:
+                        values.append(self.Wild_Card_Value)
+                else:
+                    values.append(cards_needed[card])
+            best_card_index = values.index(max(values))
+            action = DrawFaceUpAction(best_card_index,self.face_up_cards[best_card_index])
+        else:
+            action = DrawDeckAction
 
-        return [DrawDeckAction()]
+        return [action]
 
     def select_destinations(self, game, destinations):
         """

@@ -154,7 +154,10 @@ class Path:
 
     def __repr__(self):
         return "(%s, %s, [%s])" % (str(self.cost), str(self.score),
-                                   ", ".join(["(%s, %s)" % (edge.city1, edge.city2) for edge in self.edges]))
+                                   ", ".join(["(%s, %s, %s, %s)" % (edge.city1,
+                                                                    edge.city2,
+                                                                    Colors.str(edge.color),
+                                                                    edge.cost) for edge in self.edges]))
 
 
 class HistoryEvent:
