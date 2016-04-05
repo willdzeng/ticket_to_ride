@@ -47,17 +47,16 @@ class GraphTopology:
                     city_edges.append([route.city1,route])
         return city_edges
         
-    """
+
     def brushfire_from(self,start_city,depth,player,return_on_fork,routes):
         actual_depth = 0
         burned_cities = list()
-        buringing_cities = list()
+        burning_cities = list()
         burning_cities.append([start_city,actual_depth])
-        routes = game.get_edge_claims()
         while depth > actual_depth:
-            burn_city = burning_cities.pop_front()
+            burn_city = burning_cities.pop(0)
             actual_depth = actual_depth + 1
-            for city in self.get_adjacent_cities(routes,player):
+            for city in self.get_adjacent_cities(burn_city,routes,player):
                 if(city not in burned_cities):
                     burning_cities.append([city, actual_depth])
             if(len(burning_cities) >  1 & return_on_fork):
@@ -66,8 +65,12 @@ class GraphTopology:
         depth = actual_depth
 
         return burned_cities
-    """
 
+    def get_depth(self,player,city):
+        depth = 10
+        return_on_fork = False
+        self.brushfire_from(city,depth,player,return_on_fork,self.routes)
+        return depth
     def get_possible_edges(self,player,start_city,depth):
         actual_depth = 0
         burned_cities = list()
@@ -81,7 +84,8 @@ class GraphTopology:
                 if(city_edge[0] not in burned_cities):
                     burning_cities.append([city_edge[0], actual_depth])
                 if(city_edge[0] in self.enemy_cities):
-                    harmful_edges.append(city_edge[1])
+                    cost = self.get_depth(player,city_edge[1].city1) + self.get_depth(player,city_edge[1].city2)
+                    harmful_edges.append([city_edge[1],cost])
         depth = actual_depth
         return harmful_edges
 

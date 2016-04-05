@@ -31,7 +31,7 @@ class AdversarialAI(Player):
         path = list()
 
         steal_edge = self.graph_topology.get_most_harmful_edge('P1')
-
+        #steal_edge = edge(weak_edge.city1,weak_edge.city2,4,'None');
 
 
 
@@ -54,9 +54,9 @@ class AdversarialAI(Player):
             if(steal_edge):
                 print 'Taking adversarial Action!!!!!!!!'
                 print 'Want to take edge:'
+
                 print steal_edge
-                if edge_claims[steal_edge] != self.name:
-                    actions.append(Game.all_connection_actions(steal_edge, info.hand.cards))
+                actions.append(Game.all_connection_actions(steal_edge, info.hand.cards))
 
                 # No actions, then do normal actions
                 if not actions:
