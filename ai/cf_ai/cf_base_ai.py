@@ -189,7 +189,6 @@ class CFBaseAI(Player):
         will call `on_cant_select_edge`.
         """
         # Default: Select random edge that is playable.
-
         edge_claims = self.edge_claims
         info = self.info
 
@@ -238,6 +237,7 @@ class CFBaseAI(Player):
         :param game:
         :return: the actions to perform, list of action
         """
+        # TODO: need to add a evaluation to claim other routes when we have extra cards
         best_action = []
         draw_ticket_action = []
 
@@ -289,7 +289,6 @@ class CFBaseAI(Player):
         :param game: The game object.
         :return: The action(s) to perform.  Will randomly pick from the list of actions.
         """
-        # TODO: Need to figure out a rule of when to draw destination card
         action = []
         if self.info.num_cars > self.Draw_Ticket_Threshold:
             action = [DrawDestinationAction()]
@@ -322,6 +321,20 @@ class CFBaseAI(Player):
                 cards_needed[edge.color] += edge.cost
         return cards_needed
 
+    def get_extra_hand_cards(self, game):
+        """
+        get the extra card in hand
+        :param game:
+        :return: dictionary of the extra hand card
+        """
+        cards_needed = self.get_cards_needed(self.path)
+        extra_hand_cards = {i:0 for i in range(9)}
+        for card in self.info.hand.cards:
+            if cards_needed[card] == 0:
+                extra_hand_cards[card] += 1
+
+        return extra_hand_cards
+
     def draw_best_card(self, game):
         """
         Draw the best card based on the path we planned.
@@ -329,14 +342,26 @@ class CFBaseAI(Player):
         :return:
         """
         cards_needed = self.get_cards_needed(self.path)
-        values = []
-
-        # initialize the value list of each cards
-        for card in self.face_up_cards:
-            values.append(0)
 
         # if we have any cards needed
         if cards_needed:
+            # initialize the value list of each cards
+            values = []
+            for card in self.face_up_cards:
+                values.append(0)
+
+
+            # TODO: need to add evaluation of draw face up cards if we have gray routes
+            # check if we have gray color routes and we have some extra card
+            # gray_cards = cards_needed[Colors.none]
+
+            # if not gray_cards == 0:
+            #     print "###### have gray routes ######"
+            #     extra_hand_cards = self.get_extra_hand_cards(game)
+            #     for index,card in enumerate(self.face_up_cards):
+            #         values[index] = extra_hand_cards[card]
+            # print values
+
             for index,card in enumerate(self.face_up_cards):
                 # if the card is a wild card
                 if card == Colors.none:
@@ -346,12 +371,21 @@ class CFBaseAI(Player):
                         values[index] = -1
                         continue
                     else:
-                        values[index] = self.Wild_Card_Value
+                        # add this wild card value based on the parameter
+                        values[index] += self.Wild_Card_Value
                 else:
-                    values[index] = cards_needed[card]
+                    values[index] += cards_needed[card]
+
+            if self.debug:
+                print "Face up cards has values:", values
+
+            # select the maximum value of face up cards
             max_value = max(values)
+
+            # if the maximum value is still zero, then better draw face up cards
             if max_value == 0:
-                print "### There is no good face up cards ####"
+                if self.debug:
+                    print "###### There is no good face up cards #######"
                 action = DrawDeckAction()
             else:
                 best_card_index = values.index(max_value)
