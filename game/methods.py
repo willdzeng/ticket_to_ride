@@ -142,3 +142,96 @@ def find_paths(city1, city2, city_edges, max_cost, scoring, player=None, edge_cl
                     queue.append((other_city, visited.union(set(other_city)), updated_path))
 
     return result
+
+
+    """
+    get the city and edges which are adjacent from a city, (follows player claim type)
+    """
+    def get_adjacent_cities(self,city,routes,player):
+        city_edges = list()
+        for route in routes:
+            if(str(routes.get(route) or 'unclaimed') is str(player)):
+                if(str(route.city1) == str(city)):
+                    city_edges.append([route.city2,route])
+                if(str(route.city2) == str(city)):
+                    city_edges.append([route.city1,route])
+        return city_edges
+
+    """
+    brushfire algorithm from city: returns cities and depths as list
+    """
+    def brushfire_from(self,start_city,depth,player,return_on_fork,routes):
+        actual_depth = 0
+        burned_cities = list()
+        burning_cities = list()
+        #print 'Now determining extent'
+        burning_cities.append([start_city,actual_depth])
+        while depth > actual_depth and burning_cities:
+            burn_city = burning_cities.pop(0)
+            burned_cities.append(burn_city)
+            for city in self.get_adjacent_cities(burn_city[0],routes,player):
+                if(city not in burned_cities):
+                    burning_cities.append([city, actual_depth+1])
+            if(len(burning_cities) >  1 & return_on_fork):
+                return burning_cities
+            actual_depth = actual_depth + 1
+        return burned_cities, actual_depth
+
+    """
+    Get the maximum depth of routes from a city
+    """
+    def depth_of_path_from(self,player,city):
+        return_on_fork = False
+        depth = 10
+        city_depths =self.brushfire_from(city,depth,player,return_on_fork,self.routes)
+        actual_depth = 1
+        for city_depth in city_depths:
+           if actual_depth < city_depth[1]:
+               actual_depth = city_depth[1]
+        return actual_depth
+
+    """
+    Get edges of that are easily threatened for a specific player near city
+    """
+    def threatened_edge_near(self,start_city,player,depth):
+        actual_depth = 0
+        burned_cities = list()
+        burning_cities = list()
+        harmful_edges = list()
+        burning_cities.append([start_city,actual_depth])
+        while depth > actual_depth:
+            burn_city = burning_cities.pop(0)
+            actual_depth = actual_depth + 1
+            for city_edge in self.get_adjacent_cities(burn_city[0],self.routes,'unclaimed'):
+                if(city_edge[0] not in burned_cities):
+                    burning_cities.append([city_edge[0], actual_depth])
+                if(city_edge[0] in self.enemy_cities):
+                    cost = self.get_depth(player,city_edge[1].city1) + self.get_depth(player,city_edge[1].city2)
+                    #city_edge[1].cost = cost;
+                    harmful_edges.append(city_edge[1])
+        depth = actual_depth
+        return harmful_edges
+
+    """
+    Get edges of that are easily threatened for a specific player
+    """
+
+    def get_unfilled_enemy_edges(self,player,routes):
+        depth =10
+        unfilled_enemy_edges = list()
+        # get list of cities which opponent has edges which connect to it
+        self.enemy_cities = list()
+        for route in routes:
+            if self.routes.get(route) is player:
+                if route.city1 not in self.enemy_cities:
+                    self.enemy_cities.append(route.city1)
+                if route.city2 not in self.enemy_cities:
+                    self.enemy_cities.append(route.city2)
+        # for each enemy city
+        for city in self.enemy_cities:
+            #search for beginings of other paths at depth
+            for edge_group in self.threatened_edge_near(city,player,depth,routes): #correct?
+                unfilled_enemy_edges.append(edge_group)
+        return unfilled_enemy_edges
+
+

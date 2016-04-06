@@ -60,7 +60,7 @@ class AdversarialAI(Player):
                     print steal_edge
                     possible_action = Game.all_connection_actions(steal_edge, info.hand.cards)
                     if possible_action:
-                        actions.append(possible_action)
+                        actions.append(possible_action[0])
                         print str(possible_action)
                 print actions
                 # No actions, then do normal actions
