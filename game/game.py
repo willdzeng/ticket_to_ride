@@ -116,6 +116,13 @@ class Game:
         """
         return list(self._face_up_cards)
 
+    def print_face_up_cards(self):
+        """
+        print the face up cards
+        :return:
+        """
+        print "Face Up cards:[","(%s)" % ", ".join(map(Colors.str_card, [card for card in self._face_up_cards])),"]"
+
     def get_player_info(self, player):
         """
         Get all of the game info of player.

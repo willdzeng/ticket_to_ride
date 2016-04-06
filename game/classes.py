@@ -153,7 +153,7 @@ class Path:
         return path.cost
 
     def __repr__(self):
-        return "(%s, %s, [%s])" % (str(self.cost), str(self.score),
+        return "( Cost: %s, Score: %s, [%s])" % (str(self.cost), str(self.score),
                                    ", ".join(["(%s, %s, %s, %s)" % (edge.city1,
                                                                     edge.city2,
                                                                     Colors.str(edge.color),

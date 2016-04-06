@@ -25,7 +25,8 @@ class CFBaseAI(Player):
     Edge_Score_Multiplier = 0.1  # used to reward a edge based on it's score
     Wild_Card_Cost = 8  # used when claiming routes, how much this claiming action cost when it's using wild card
     Wild_Card_Value = 3  # used when selecting the best cards to evaluate how much a wild card values
-    Ticket_Score_Multiplier = 2  # used when selecting ticket
+    Ticket_Score_Multiplier = 1  # used when selecting ticket
+    Draw_Ticket_Threshold  = 15 # the threshold of number of cars to draw ticket cards
     debug = True  # enable to print more debug stuff
 
     def __init__(self, name):
@@ -231,18 +232,6 @@ class CFBaseAI(Player):
         # return actions
         return best_action
 
-    def get_cards_needed(self, path):
-        """
-        get the cards needed of giving path
-        :param path: the path to evaluate
-        :return: the cards dictionary {card_index : number_of_cards}
-        """
-        cards_needed = {i: 0 for i in range(9)}
-        if path is not None:
-            for edge in path.edges:
-                cards_needed[edge.color] += edge.cost
-        return cards_needed
-
     def on_cant_find_path(self, game):
         """
         Execute when it can't find any path
@@ -302,7 +291,7 @@ class CFBaseAI(Player):
         """
         # TODO: Need to figure out a rule of when to draw destination card
         action = []
-        if self.info.num_cars > 20:
+        if self.info.num_cars > self.Draw_Ticket_Threshold:
             action = [DrawDestinationAction()]
         # else:
         #     action = self.draw_best_card(game)
@@ -318,6 +307,21 @@ class CFBaseAI(Player):
         """
         return self.draw_best_card(game)
 
+    def get_cards_needed(self, path):
+        """
+        get the cards needed of giving path
+        :param path: the path to evaluate
+        :return: the cards dictionary {card_index : number_of_cards}
+        """
+        cards_needed = {i: 0 for i in range(9)}
+        if path is not None:
+            for edge in path.edges:
+                # if we already have this edge, we don't need this card anymore
+                if self.edge_claims[edge] == self.name:
+                    continue
+                cards_needed[edge.color] += edge.cost
+        return cards_needed
+
     def draw_best_card(self, game):
         """
         Draw the best card based on the path we planned.
@@ -326,21 +330,32 @@ class CFBaseAI(Player):
         """
         cards_needed = self.get_cards_needed(self.path)
         values = []
+
+        # initialize the value list of each cards
+        for card in self.face_up_cards:
+            values.append(0)
+
+        # if we have any cards needed
         if cards_needed:
-            for card in self.face_up_cards:
+            for index,card in enumerate(self.face_up_cards):
                 # if the card is a wild card
                 if card == Colors.none:
                     # if we don't have 2 action point
                     if self.action_remaining == 1:
                         # append -1 so that it won't choose it at all
-                        values.append(-1)
+                        values[index] = -1
                         continue
                     else:
-                        values.append(self.Wild_Card_Value)
+                        values[index] = self.Wild_Card_Value
                 else:
-                    values.append(cards_needed[card])
-            best_card_index = values.index(max(values))
-            action = DrawFaceUpAction(best_card_index, self.face_up_cards[best_card_index])
+                    values[index] = cards_needed[card]
+            max_value = max(values)
+            if max_value == 0:
+                print "### There is no good face up cards ####"
+                action = DrawDeckAction()
+            else:
+                best_card_index = values.index(max_value)
+                action = DrawFaceUpAction(best_card_index, self.face_up_cards[best_card_index])
         else:
             action = DrawDeckAction()
 

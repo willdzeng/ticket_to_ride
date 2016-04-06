@@ -3,14 +3,16 @@ import time
 from ai.cf_ai.cheapest_path_ai import CheapestPathAI
 from ai.cf_ai.greedy_ai import GreedyAI
 from ai.random_ai import RandomAI
+from ai.cf_ai.cf_random_ai import CFRandomAI
+from ai.cf_ai.cf_base_ai import CFBaseAI
 from game import Game
-from game.classes import FailureCause
+from game.classes import FailureCause,Colors
 from human_player.console_player import ConsolePlayer
 
-p1 = CheapestPathAI("P1")
+p1 = CFRandomAI("P1")
 # p1 = ConsolePlayer("Human")
 # p2 = Player("P2")
-p2 = CheapestPathAI("P2")
+p2 = CFBaseAI("P2")
 # p2 = GreedyAI("P2")
 
 players = [p1, p2]
@@ -48,6 +50,7 @@ while not game.is_game_over()[0]:
             # Print results.  This happens after the action is performed so the timing is correct when drawing
             # destinations.
             if print_debug:
+                game.print_face_up_cards()
                 print "Player %s: %s\nDoing Action: %s" % \
                       (player.name, player_info, action_to_perform)
 
