@@ -10,13 +10,15 @@ class AdversarialAI(GreedyAI):
     def __init__(self, name):
         GreedyAI.__init__(self, name)
         self.sort_method = lambda path: path.cost
+
+
     def take_turn(self, game):
         info = game.get_player_info(self)
         steal_edges = get_threatened_edges('P1',game.get_edge_claims())
         original_action = GreedyAI.take_turn(self,game)
         actions = []
 
-
+        #If there are edges to steal, then adversarial AI will attempt to take them, otherwise it will execute normally
         if(steal_edges):
             print 'Taking adversarial Action!!!!!!!!'
             print 'Want to take edges:'
