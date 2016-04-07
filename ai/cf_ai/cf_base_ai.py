@@ -82,7 +82,7 @@ class CFBaseAI(Player):
         # TODO: need to discuss what should we do if the path search can't find a path but we still have tickets card
         # TODO: Put print statements into separate method.  Maybe have 2 different debug prints?
         if self.debug:
-            print "Path: %s" % self.path
+            # print "Path: %s" % self.path
             print "Path is clear" if path_clear else "Path is not clear"
 
         # if we can't get a path after re-calculate then we need to decide if we want to draw a new destination card
@@ -111,6 +111,7 @@ class CFBaseAI(Player):
         :param destinations: the destination card
         :return: return the best path
         """
+        # TODO: maybe there exists a bug that the path it found can't finish the giving ticket card
         path = None
         all_paths = []
 
@@ -150,6 +151,7 @@ class CFBaseAI(Player):
         :param game: The game object.
         :return: An integer for the cost of the path.  Lower numbers mean the path is more likely to be selected.
         """
+        ## TODO: need to evaluate the best path based on current hand
         cost = 0
         for edge in path.edges:
             cost += self.eval_edge(edge, all_paths, game)
@@ -212,7 +214,7 @@ class CFBaseAI(Player):
         if all_connection_actions:
             # evaluate every action based on a cost function
             min_index = 0
-            min_cost = 100000
+            min_cost = float("inf")
             for index, action in enumerate(all_connection_actions):
                 cost = 0
                 for card in action.cards:
@@ -237,7 +239,7 @@ class CFBaseAI(Player):
         :param game:
         :return: the actions to perform, list of action
         """
-        # TODO: need to add a evaluation to claim other routes when we have extra cards
+
         best_action = []
         draw_ticket_action = []
 
@@ -280,7 +282,46 @@ class CFBaseAI(Player):
         :param game: The game object.
         :return: The actions to perform.  Will randomly pick from the list of actions.
         """
-        return self.draw_best_card(game)
+        # TODO: This method blew doesn't help with the performance, need to be improved
+        # connect_actions = []
+        # cards_needed = self.get_cards_needed(self.path)
+        # # get all the connection action
+        # for action in self.available_actions:
+        #     if action.is_connect():
+        #         connect_actions.append(action)
+        #
+        # # get possible actions based on it doesn't cost any card in cards_needed
+        # possible_actions = []
+        # if connect_actions:
+        #     for action in connect_actions:
+        #         bad_action = False
+        #         for card in action.cards:
+        #             if cards_needed[card] != 0:
+        #                 bad_action = True
+        #                 break
+        #         if bad_action:
+        #             continue
+        #         else:
+        #             possible_actions.append(action)
+        #
+        # # if there are any possible connection action, choose the one has highest cost,
+        # # which means it has highest score also
+        # if possible_actions:
+        #     max_cost = 0
+        #     max_index = 0
+        #     for index, action in enumerate(possible_actions):
+        #         if action.edge.cost > max_cost:
+        #             max_cost = action.edge.cost
+        #             max_index = index
+        #     best_action = [possible_actions[max_index]]
+        #     if self.debug:
+        #         print "####### Found a good connection action that is not in path ######"
+        #         print best_action[0]
+        # else:
+        #     best_action = self.draw_best_card(game)
+
+        best_action = self.draw_best_card(game)
+        return best_action
 
     def on_no_more_destinations(self, game):
         """
@@ -352,6 +393,8 @@ class CFBaseAI(Player):
 
 
             # TODO: need to add evaluation of draw face up cards if we have gray routes
+
+            # TODO: this method below doesn't improve the performance need to be improved
             # check if we have gray color routes and we have some extra card
             # gray_cards = cards_needed[Colors.none]
 
@@ -403,12 +446,13 @@ class CFBaseAI(Player):
         :return: A sub-list of the destinations passed in with at least one element.
         """
         # TODO: Consider possibility of taking more than one.
+        # TODO: Consider the current hand card in cost function
         destination_cost = []
 
         for destination in destinations:
             path, all_path = self.find_best_path(game, [destination])
             if path is None:
-                destination_cost.append(10000)
+                destination_cost.append(float("inf"))
             else:
                 destination_cost.append(path.cost)
 
@@ -439,7 +483,7 @@ class CFBaseAI(Player):
                 possible_destination.append(destinations[index])
             path, all_path = self.find_best_path(game, possible_destination)
             if path is None:
-                costs.append(10000)
+                costs.append(float("inf"))
                 possible_destination_comb.append(possible_destination)
             else:
                 possible_destination_comb.append(possible_destination)
@@ -456,6 +500,10 @@ class CFBaseAI(Player):
         :param game:
         :return:
         """
-        remaining_edges = self.path.edges - game.get_edges_for_player(self) if self.path is not None else []
+        player_edge_claimed = game.get_edges_for_player(self)
+        remaining_edges = self.path.edges - player_edge_claimed if self.path is not None else []
 
-        return "Path:%s\nRemaining Edges: [%s]" % (str(self.path), ", ".join([str(edge) for edge in remaining_edges]))
+
+        return "Path:%s\nRemaining Edges: [%s]\nEdge Claimed: [%s]" \
+               % (str(self.path), ", ".join([str(edge) for edge in remaining_edges]),
+                  ", ".join([str(edge) for edge in player_edge_claimed]))
