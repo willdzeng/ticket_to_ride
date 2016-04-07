@@ -1,6 +1,7 @@
 import time
 
 from ai.cf_ai.cheapest_path_ai import CheapestPathAI
+from ai.adversarial_ai import AdversarialAI
 from ai.cf_ai.greedy_ai import GreedyAI
 from ai.random_ai import RandomAI
 from ai.cf_ai.cf_random_ai import CFRandomAI
@@ -12,12 +13,15 @@ from human_player.console_player import ConsolePlayer
 p1 = CFRandomAI("P1")
 # p1 = ConsolePlayer("Human")
 # p2 = Player("P2")
+
 p2 = CFBaseAI("P2")
 # p2 = GreedyAI("P2")
-
+#p2 = AdversarialAI("P2")
 players = [p1, p2]
-
 use_gui = False
+
+
+
 print_debug = True
 exception_on_bad_action = True
 pause_between_turns = 0
@@ -77,6 +81,7 @@ for player in players:
 print "Game Over"
 print "Winner: %s" % game.is_game_over()[1]
 print "Final Scores: %s" % game.get_visible_scores()
+#print game.get_edge_claims()
 
 if use_gui:
     game_gui.update_game_ended(game)
