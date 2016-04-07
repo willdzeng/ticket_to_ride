@@ -4,8 +4,9 @@ class Player:
     states.
     """
 
-    def __init__(self, name):
+    def __init__(self, name, print_debug=False):
         self.name = name
+        self.print_debug = print_debug
 
     def __str__(self):
         return self.name

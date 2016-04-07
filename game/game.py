@@ -14,22 +14,23 @@ class Game:
     STARTING_HAND_SIZE = 4
     DEFAULT_NUM_CARS = 45
 
-    def __init__(self, players, maximum_rounds=5000, custom_settings=False, city_edges=None, edges=None, deck=None,
+    def __init__(self, players, maximum_rounds=5000, print_debug=False, custom_settings=False, city_edges=None, \
+                                                                                                       edges=None, 
+                 deck=None,
                  destinations=None, num_cars=45):
         if not custom_settings:
             self._city_edges, self._edges = create_board()
             self._deck, self._destinations = init_decks()
             self._num_cars = self.DEFAULT_NUM_CARS
-
-            #self._num_cars = 45
-
         else:
             self._city_edges = city_edges
             self._edges = edges
             self._deck = deck
             self._destinations = destinations
-            
+
             self._num_cars = num_cars
+            
+        self.print_debug = print_debug
         self._maximum_rounds = maximum_rounds
         self._rounds_count = 0
         self._scoring = get_scoring()
@@ -57,7 +58,9 @@ class Game:
             possible_destinations = [self._destinations.pop(), self._destinations.pop(),
                                      self._destinations.pop()]
 
-            print player,"is selecting initial tickets"
+            if self.print_debug:
+                print player, "is selecting initial tickets"
+                
             destinations = player.select_starting_destinations(self, possible_destinations)
 
             if len(destinations) < 2:
@@ -71,14 +74,15 @@ class Game:
 
                 # Reduce score by all incomplete destinations.
                 score -= destination.value
-            print player,"selected tickets",destinations
+            
+            if self.print_debug:
+                print player, "selected tickets", destinations
 
             # set the selected destinations
             player_info.destinations = destinations
 
             # set the player's calculated score
             player_info.score = score
-
 
         # Visible scores are set to zero.
         self._visible_scores = {player.name: 0 for player in self._players}
@@ -93,14 +97,10 @@ class Game:
         # The number of actions the player has left to take this turn.
         self._num_actions_remaining = 2
 
-
-
-
         # Initialize edge claims
         self._edge_claims = {edge: None for edge in self._edges}
-        if len(players) < 4: # tracking double edges in 2 and 3 player games
+        if len(players) < 4:  # tracking double edges in 2 and 3 player games
             self._track_double_edges()
-
 
         self._game_is_over = False
 
@@ -120,12 +120,11 @@ class Game:
         for edge1 in self._edge_claims:
             for edge2 in self._edge_claims:
                 if edge1 is not edge2:
-                    if edge1.city1 is edge2.city1 and  edge1.city2 is edge2.city2:
-                        #print 'Saying the following are double edges'
-                        #print edge1
-                        #print edge2 
+                    if edge1.city1 is edge2.city1 and edge1.city2 is edge2.city2:
+                        # print 'Saying the following are double edges'
+                        # print edge1
+                        # print edge2 
                         self._double_edges[edge1] = edge2
-
 
     def get_edge_claims(self):
         """
@@ -144,7 +143,7 @@ class Game:
         print the face up cards
         :return:
         """
-        print "Face Up cards:[","(%s)" % ", ".join(map(Colors.str_card, [card for card in self._face_up_cards])),"]"
+        print "Face Up cards:[", "(%s)" % ", ".join(map(Colors.str_card, [card for card in self._face_up_cards])), "]"
 
     def get_player_info(self, player):
         """
@@ -444,10 +443,6 @@ class Game:
         for destination in selected_destinations:
             # Make sure the destination card is in the possible_destination cards set
             if destination not in possible_destinations:
-                print destination
-                for a in possible_destinations:
-                    print a
-                print "aaa"
                 return False, FailureCause.wrong_destination_card
 
             # immediately subtract the cost of the destination card from the player's score
@@ -489,8 +484,9 @@ class Game:
 
             # Cards must match the edge's requirements.
             if not self.cards_match_exact(edge, cards):
-                print player.name,"has cards",self._player_info[player].hands
-                print "Routes need",edge.cost,"cars"
+                if self.print_debug:
+                    print player.name, "has cards", self._player_info[player].hands
+                    print "Routes need", edge.cost, "cars"
                 return False, FailureCause.incompatible_cards
 
             # Player must have enough cars.
@@ -673,11 +669,10 @@ class Game:
         """
 
         self._edge_claims[edge] = player.name
-        
-        if edge in self._double_edges:
-            #print 'claiming similar edge'
-            self._edge_claims[self._double_edges[edge]] = 'game_rules'
 
+        if edge in self._double_edges:
+            # print 'claiming similar edge'
+            self._edge_claims[self._double_edges[edge]] = 'game_rules'
 
     def _edge_is_claimed(self, edge):
         """
@@ -716,7 +711,9 @@ class Game:
         # Trigger all events for when the game ends.
         for event in self._game_ended_events:
             event(self)
-        print "Rounds played: %d" % self._rounds_count
+            
+        if self.print_debug:
+            print "Rounds played: %d" % self._rounds_count
 
     def _check_deck(self):
         """

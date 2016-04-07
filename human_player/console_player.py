@@ -72,7 +72,7 @@ class ConsolePlayer(Player):
                         edges_seen.add(action_iter.edge)
 
                 edges_seen = list(edges_seen)
-                edges_seen.sort(key=lambda edge: edge.color)
+                edges_seen.sort(key=lambda edge: (edge.color, edge.cost))
 
                 # Show options for selection to user.
                 print ""

@@ -26,8 +26,7 @@ class CFBaseAI(Player):
     Wild_Card_Cost = 8  # used when claiming routes, how much this claiming action cost when it's using wild card
     Wild_Card_Value = 3  # used when selecting the best cards to evaluate how much a wild card values
     Ticket_Score_Multiplier = 1  # used when selecting ticket
-    Draw_Ticket_Threshold  = 15 # the threshold of number of cars to draw ticket cards
-    debug = True  # enable to print more debug stuff
+    Draw_Ticket_Threshold = 15  # the threshold of number of cars to draw ticket cards
 
     def __init__(self, name):
         Player.__init__(self, name)
@@ -40,7 +39,7 @@ class CFBaseAI(Player):
         self.edge_claims = None
 
     def take_turn(self, game):
-        # update game state first
+        # Update game state first
         self.info = game.get_player_info(self)
         self.edge_claims = game.get_edge_claims()
         self.available_actions = game.get_available_actions(self)
@@ -81,13 +80,13 @@ class CFBaseAI(Player):
 
         # TODO: need to discuss what should we do if the path search can't find a path but we still have tickets card
         # TODO: Put print statements into separate method.  Maybe have 2 different debug prints?
-        if self.debug:
+        if self.print_debug:
             # print "Path: %s" % self.path
             print "Path is clear" if path_clear else "Path is not clear"
 
         # if we can't get a path after re-calculate then we need to decide if we want to draw a new destination card
         if self.path is None:
-            if self.debug:
+            if self.print_debug:
                 print "############# AI: no path found ##############"
             # Perform correct action when no path is found
             actions = self.on_cant_find_path(game)
@@ -223,7 +222,7 @@ class CFBaseAI(Player):
                     else:
                         cost += cards_needed[card]
                 cost -= self.Edge_Score_Multiplier * board.get_scoring()[action.edge.cost]
-                if self.debug: print action, "has cost", cost
+                if self.print_debug: print action, "has cost", cost
                 if cost < min_cost:
                     min_cost = cost
                     min_index = index
@@ -314,7 +313,7 @@ class CFBaseAI(Player):
         #             max_cost = action.edge.cost
         #             max_index = index
         #     best_action = [possible_actions[max_index]]
-        #     if self.debug:
+        #     if self.print_debug:
         #         print "####### Found a good connection action that is not in path ######"
         #         print best_action[0]
         # else:
@@ -369,7 +368,7 @@ class CFBaseAI(Player):
         :return: dictionary of the extra hand card
         """
         cards_needed = self.get_cards_needed(self.path)
-        extra_hand_cards = {i:0 for i in range(9)}
+        extra_hand_cards = {i: 0 for i in range(9)}
         for card in self.info.hand.cards:
             if cards_needed[card] == 0:
                 extra_hand_cards[card] += 1
@@ -391,7 +390,6 @@ class CFBaseAI(Player):
             for card in self.face_up_cards:
                 values.append(0)
 
-
             # TODO: need to add evaluation of draw face up cards if we have gray routes
 
             # TODO: this method below doesn't improve the performance need to be improved
@@ -405,7 +403,7 @@ class CFBaseAI(Player):
             #         values[index] = extra_hand_cards[card]
             # print values
 
-            for index,card in enumerate(self.face_up_cards):
+            for index, card in enumerate(self.face_up_cards):
                 # if the card is a wild card
                 if card == Colors.none:
                     # if we don't have 2 action point
@@ -419,7 +417,7 @@ class CFBaseAI(Player):
                 else:
                     values[index] += cards_needed[card]
 
-            if self.debug:
+            if self.print_debug:
                 print "Face up cards has values:", values
 
             # select the maximum value of face up cards
@@ -427,7 +425,7 @@ class CFBaseAI(Player):
 
             # if the maximum value is still zero, then better draw face up cards
             if max_value == 0:
-                if self.debug:
+                if self.print_debug:
                     print "###### There is no good face up cards #######"
                 action = DrawDeckAction()
             else:
@@ -502,7 +500,6 @@ class CFBaseAI(Player):
         """
         player_edge_claimed = game.get_edges_for_player(self)
         remaining_edges = self.path.edges - player_edge_claimed if self.path is not None else []
-
 
         return "Path:%s\nRemaining Edges: [%s]\nEdge Claimed: [%s]" \
                % (str(self.path), ", ".join([str(edge) for edge in remaining_edges]),
