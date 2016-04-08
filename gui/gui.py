@@ -7,7 +7,6 @@ from game.board import create_board
 
 
 # cities = dict()
-
 # cities = dict()
 # x = []
 # y = []
@@ -16,7 +15,7 @@ from game.board import create_board
 
 class GUI:
     def __init__(self,x_size=20,y_size=10):
-
+        
         print('initializing gui')
 
         img = mpimg.imread('../gui/world2.png')
@@ -27,7 +26,7 @@ class GUI:
         plt.ylim([700,0])
         imgplot.axes.get_xaxis().set_visible(False)
         imgplot.axes.get_yaxis().set_visible(False)
-
+        self.needs_reset= False
 
         #imgplot = plt.imdraw(img)
         self.place_cities()
@@ -61,11 +60,12 @@ class GUI:
 
             x_mean = (x_1[0] +x_1[1])/2
             y_mean = (y_1[0] +y_1[1])/2
+            self.edge_means[edge] = [x_mean,y_mean]
 
             self.edge_weights[edge] =plt.plot(x_mean,y_mean,'go')
             plt.setp(self.edge_weights[edge],'ms',15.0)
-            plt.text(x_mean-7,y_mean+7,str(edge.cost),fontdict=None)
-            #Plot the numbers of cards player 1 and 2 have
+            self.edge_numbers[edge] = plt.text(x_mean-7,y_mean+7,str(edge.cost),fontdict=None)
+        #Plot the numbers of cards player 1 and 2 have
 
         #First for player 1
         x = 705
@@ -86,7 +86,7 @@ class GUI:
             x = x+ 22
         self.p2_score = plt.text(x+77,y,'0',fontdict=None)
         self.p2_cars = plt.text(x+22,y,'0',fontdict=None)
-
+        
         self.cards['0'] = mpimg.imread('../gui/red.png')
         self.cards['1'] = mpimg.imread('../gui/orange.png')
         self.cards['2'] = mpimg.imread('../gui/blue.png')
@@ -123,7 +123,23 @@ class GUI:
     p1_cars=[]
     p2_cars=[]
     fig = []
+    edge_icons = dict()
+    edge_numbers = dict()
+    edge_means = dict()
+    need_reset =False
 
+    def reset_edge_labels(self,edges):
+        for edge in edges:
+            plt.setp(self.edge_weights[edge],'color','g')
+            plt.setp(self.edge_weights[edge], marker='o')
+            plt.setp(self.edge_numbers[edge], text=str(edge.cost))
+
+    def show_edges(self,edges):
+        for index,edge in enumerate(edges):
+            plt.setp(self.edge_weights[edge],'color','w')
+            plt.setp(self.edge_weights[edge], marker='s')
+            plt.setp(self.edge_numbers[edge], text=str(index))
+        self.needs_reset = True
 
 
     def place_cities(self):
@@ -175,6 +191,9 @@ class GUI:
             self.y.append(self.cities[city][1])
 
     def update(self, game):
+        if self.needs_reset:
+            self.reset_edge_labels(game.get_edge_claims())
+            self.needs_reset = False
         # TODO: Implement.
         self.update_display(game)
         self.update_edges(game)
@@ -208,6 +227,7 @@ class GUI:
                     self.player_2_cards[str(card)].set_text(str(cards[card]))
                     self.p2_score.set_text(str(scores[player.name]))
                     self.p2_cars.set_text(str(game.get_player_info(player).num_cars))
+
 
 
     def update_edges(self,game):

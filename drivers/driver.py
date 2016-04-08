@@ -21,7 +21,6 @@ class Driver:
 
     def run_game(self):
         game = self.create_game()
-
         self.play_game(game)
 
     def create_game(self):
@@ -32,6 +31,8 @@ class Driver:
         if self.use_gui:
             from gui import gui
             self.game_gui = gui.GUI()
+            game.gui = self.game_gui; #I thought this would not be too terrible 
+
 
         # Main game loop.  Tells players when to take their turn.
         while not game.is_game_over()[0]:

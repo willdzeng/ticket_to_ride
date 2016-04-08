@@ -8,7 +8,7 @@ from board import create_board, get_scoring
 from cards import init_decks, shuffle_deck, shuffle_destinations
 from classes import PlayerInfo, FailureCause, HistoryEvent, Hand
 from methods import connected
-
+#from gui import GUI
 
 class Game:
     STARTING_HAND_SIZE = 4
@@ -33,6 +33,7 @@ class Game:
         self.print_debug = print_debug
         self._maximum_rounds = maximum_rounds
         self._rounds_count = 0
+        self.gui = None
         self._scoring = get_scoring()
         self._double_edges = dict()
         self._players = players

@@ -74,6 +74,8 @@ class ConsolePlayer(Player):
 
                 edges_seen = list(edges_seen)
                 edges_seen.sort(key=lambda edge: (edge.color, edge.cost))
+                if game.gui:
+                    game.gui.show_edges(edges_seen) 
 
                 # Show options for selection to user.
                 print ""
@@ -87,7 +89,7 @@ class ConsolePlayer(Player):
 
                 if 0 <= selection < len(edges_seen):
                     # Ask how the user would like to claim the edge.
-                    possible_actions = Game.all_connection_actions(edges_seen[selection], self.player_info.hand.cards)
+                    possible_actions = Game.all_connection_actions(edges_seen[selection], self.player_info.hand.cards,self.player_info.num_cars)
 
                     print ""
                     print "Choose which cards to use:"
@@ -100,7 +102,7 @@ class ConsolePlayer(Player):
 
                     if 0 <= selection < len(possible_actions):
                         action = possible_actions[selection]
-
+            
         print ""
         return action
 
@@ -114,6 +116,9 @@ class ConsolePlayer(Player):
             print ""
         elif self._drew_card_from_deck:
             # If the player just drew a card from the deck, then figure out what the new card is and output the result.
+            if game.gui:
+                game.gui.update(game) 
+
             old_cards = self.player_info.hand.cards
             new_cards = game.get_player_info(self).hand.cards
 

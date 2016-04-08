@@ -9,17 +9,17 @@ from game import Game
 from game.classes import FailureCause,Colors
 from human_player.console_player import ConsolePlayer
 
-p1 = CFRandomAI("P1")
-p1 = ConsolePlayer("Human")
+#p1 = CFRandomAI("P1")
+p1 = ConsolePlayer("P1")
 # p2 = Player("P2")
 
-p2 = CFRandomAI("P1")
+#p2 = CFRandomAI("P1")
 
-p2 = CFBaseAI("P2")
+#p2 = CFBaseAI("P2")
 # p2 = GreedyAI("P2")
 p2 = AdversarialAI("P2")
 players = [p1, p2]
 use_gui = False
 
-driver = Driver(players,True,True,True,500)
+driver = Driver(players,True,True,True,1)
 driver.run_game();
