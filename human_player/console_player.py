@@ -10,6 +10,7 @@ class ConsolePlayer(Player):
         Player.__init__(self, name)
         self._drew_card_from_deck = False
         self.player_info = None
+        #self.gui = gui
 
     def take_turn(self, game):
         self._drew_card_from_deck = False

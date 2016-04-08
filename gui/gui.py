@@ -15,13 +15,13 @@ from game.board import create_board
 
 
 class GUI:
-    def __init__(self):
+    def __init__(self,x_size=20,y_size=10):
 
         print('initializing gui')
 
         img = mpimg.imread('../gui/world2.png')
         plt.ion()  #uncomment to let go of string
-        self.fig = plt.figure() #uncomment to let go of string
+        self.fig = plt.figure(figsize=(x_size,y_size)) #uncomment to let go of string
         imgplot = plt.imshow(img)
         plt.xlim([0,1080])
         plt.ylim([700,0])
@@ -36,15 +36,26 @@ class GUI:
         plt.plot(self.x, self.y, 'ro')
         [city_edges, edges] = create_board()
 
+        x_offset=5
+        y_offset=5
 
         #Plot the edges for connecting cities
-        for edge in edges:
+        for index1, edge in enumerate(edges):
+            offset = 0
+            for index2, edge2 in enumerate(edges):
+                #Check if this is a double edge
+                if edge.city1 is edge2.city1 and edge.city2 is edge2.city2 and edge is not edge2:
+                    if(index1 > index2):
+                        offset=-1
+                    else:
+                        offset=1 
+                
             x_1 = []
             y_1 = []
-            x_1.append(self.cities[edge.city1][0])
-            y_1.append(self.cities[edge.city1][1])
-            x_1.append(self.cities[edge.city2][0])
-            y_1.append(self.cities[edge.city2][1])
+            x_1.append(self.cities[edge.city1][0] + offset * x_offset)
+            y_1.append(self.cities[edge.city1][1] + offset * y_offset)
+            x_1.append(self.cities[edge.city2][0] + offset * x_offset)
+            y_1.append(self.cities[edge.city2][1] + offset * y_offset)
             self.edge_colors[edge]= plt.plot(x_1, y_1, self.colors[edge.color])
             plt.setp(self.edge_colors[edge], linewidth=2)
 
@@ -52,7 +63,7 @@ class GUI:
             y_mean = (y_1[0] +y_1[1])/2
 
             self.edge_weights[edge] =plt.plot(x_mean,y_mean,'go')
-            plt.setp(self.edge_weights[edge],'ms',10.0)
+            plt.setp(self.edge_weights[edge],'ms',15.0)
             plt.text(x_mean-7,y_mean+7,str(edge.cost),fontdict=None)
             #Plot the numbers of cards player 1 and 2 have
 
@@ -112,6 +123,7 @@ class GUI:
     p1_cars=[]
     p2_cars=[]
     fig = []
+
 
 
     def place_cities(self):
@@ -200,9 +212,12 @@ class GUI:
 
     def update_edges(self,game):
         edges = game.get_edge_claims()
+        
         for edge in edges:
             #print(edge)
             #print(edges[edge])
+                    
+
             if(edges[edge] == 'P1'):
                 plt.setp(self.edge_weights[edge],'color','b')
                 plt.setp(self.edge_colors[edge],'color','b')
