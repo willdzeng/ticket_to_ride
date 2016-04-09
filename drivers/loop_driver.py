@@ -10,18 +10,23 @@ from game.classes import FailureCause,Colors
 from human_player.console_player import ConsolePlayer
 
 p1 = CFRandomAI("CFRandom")
-# p1 = ConsolePlayer("P1")
-# p2 = Player("P2")
-
-# p2 = CFRandomAI("P1")
-
 p2 = CFBaseAI("CFBase")
-# p2 = GreedyAI("P2")
-# p2 = AdversarialAI("P2")
+
 players = [p1, p2]
 use_gui = False
-print_debug=True
+print_debug = False
 exception_on_bad_action=True
 pause_between_turns = 0
-driver = Driver(players,use_gui,print_debug,exception_on_bad_action,pause_between_turns)
-driver.run_game()
+
+game_repeat = 50
+winning_rounds = 0
+for i in range(game_repeat):
+    driver = Driver(players,use_gui,print_debug,exception_on_bad_action,pause_between_turns)
+    driver.run_game()
+    if driver.get_winner() == p1.name:
+        winning_rounds += 1
+
+winning_rates = winning_rounds/game_repeat
+print "after %d rounds of game"%game_repeat
+print "p1 winning rates:",
+print "p2 winning rates:", 1 - winning_rates

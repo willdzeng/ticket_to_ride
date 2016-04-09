@@ -13,6 +13,7 @@ class Driver:
         self.pause_between_turns = pause_between_turns
         self.maximum_rounds = maximum_rounds
         self.game_gui = None
+        self.winner = None
 
         # Turn off print debug for all players if the driver does not print debug output.
         if not print_debug:
@@ -78,11 +79,18 @@ class Driver:
         # Game's over.  Tell the players and print out some results.
         for player in self.players:
             player.game_ended(game)
-
+        self.winner = game.is_game_over()[1]
         print "Game Over"
-        print "Winner: %s" % game.is_game_over()[1]
+        print "Winner: %s" % self.winner
         print "Final Scores: %s" % game.get_visible_scores()
         print ""
 
         if self.use_gui:
             self.game_gui.update_game_ended(game)
+
+    def get_winner(self):
+        """
+        get winner of the game
+        :return:
+        """
+        return self.winner
