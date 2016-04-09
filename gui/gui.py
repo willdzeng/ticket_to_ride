@@ -157,8 +157,8 @@ class GUI:
 
     def show_edges(self,edges):
         for index,edge in enumerate(edges):
-            print 'updating:'
-            print edge
+            #print 'updating:'
+            #print edge
             plt.setp(self.edge_weights[edge],'color','w')
             plt.setp(self.edge_weights[edge], marker='s')
             plt.setp(self.edge_numbers[edge], text=str(index))

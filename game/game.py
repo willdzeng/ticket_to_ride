@@ -599,29 +599,49 @@ class Game:
         result = []
 
         # A short circuit in case there definitely can't be enough cards.
+
+
+
         if edge.cost > cards.most_common(1)[0][1] + cards[Colors.none]:
+            #print 'not enough cards for edge size %f'% edge.cost
+            #print 'these are the cards'
+            #print cards
+            #print 'this is the most card number'
+            #print cards.most_common(1)[0][1]
             return result
         # check if the player has enough cars
         if edge.cost > num_cars:
             return result
+
+        print 'checking stuff'
         # Route has no color.
         if edge.color == Colors.none:
             for card in cards:
+
                 if card != Colors.none and cards[card] + cards[Colors.none] >= edge.cost:
                     # Find all possible combinations of cards that can be used to claim the edge.
                     # Using min(edge.cost - 1) guarantees that we will not accidentally add unnecessary plays that
                     # use all wilds.
-                    for i in range(min(edge.cost - 1, cards[Colors.none] + 1)):
+                    for i in range(edge.cost - 1, cards[Colors.none] + 1):
                         if cards[card] >= edge.cost - i:
+                            #print 'adding card %f: ' % cards[card]
+                            #print  card
+                            #print 'using %f wild cards' % i
+                            #print 'for %f car length edge' %edge.cost
                             result.append(ConnectAction(edge, Counter({card: edge.cost - i, Colors.none: i})))
+
         # Route has a color.
         else:
             if cards[edge.color] + cards[Colors.none] >= edge.cost:
                 # Find all possible combinations of cards that can be used to claim the edge.
                 # Using min(edge.cost - 1) guarantees that we will not accidentally add unnecessary plays that
                 # use all wilds.
-                for i in range(min(edge.cost - 1, cards[Colors.none] + 1)):
+                for i in range(0,cards[Colors.none] + 1 ):
                     if cards[edge.color] >= edge.cost - i:
+                        #print 'adding card %f: ' % cards[edge.color]
+                        #print  edge.color
+                        #print 'using %f wild cards' % i
+                        #print 'for %f car length edge' % edge.cost
                         result.append(ConnectAction(edge, Counter({edge.color: edge.cost - i, Colors.none: i})))
 
         # If player has enough wilds to just get the route on wilds.
