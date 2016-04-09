@@ -75,7 +75,10 @@ class ConsolePlayer(Player):
                 edges_seen = list(edges_seen)
                 edges_seen.sort(key=lambda edge: (edge.color, edge.cost))
                 if game.gui:
-                    game.gui.show_edges(edges_seen) 
+                    #print 'attempting to display edges'
+                    game.gui.show_destinations(self.player_info.destinations)
+                    game.gui.show_edges(edges_seen)
+
 
                 # Show options for selection to user.
                 print ""
@@ -117,7 +120,8 @@ class ConsolePlayer(Player):
         elif self._drew_card_from_deck:
             # If the player just drew a card from the deck, then figure out what the new card is and output the result.
             if game.gui:
-                game.gui.update(game) 
+                game.gui.update(game)
+
 
             old_cards = self.player_info.hand.cards
             new_cards = game.get_player_info(self).hand.cards

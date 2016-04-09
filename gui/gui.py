@@ -32,7 +32,7 @@ class GUI:
         self.place_cities()
         self.plot_board()
         self.set_colors()
-        plt.plot(self.x, self.y, 'ro')
+
         [city_edges, edges] = create_board()
 
         x_offset=5
@@ -65,8 +65,12 @@ class GUI:
             self.edge_weights[edge] =plt.plot(x_mean,y_mean,'go')
             plt.setp(self.edge_weights[edge],'ms',15.0)
             self.edge_numbers[edge] = plt.text(x_mean-7,y_mean+7,str(edge.cost),fontdict=None)
-        #Plot the numbers of cards player 1 and 2 have
 
+        for city in self.cities:
+            self.city_points[city] = plt.plot(self.cities[city][0], self.cities[city][1], 'ro')
+            self.city_texts[city] = plt.text(self.cities[city][0]-5, self.cities[city][1]+5,'',fontdict=None)
+
+        #Plot the numbers of cards player 1 and 2 have
         #First for player 1
         x = 705
         y = 33
@@ -127,7 +131,24 @@ class GUI:
     edge_numbers = dict()
     edge_means = dict()
     need_reset =False
+    city_points = dict()
+    city_texts = dict()
+    destination_cities = dict()
 
+    def set_city(self,city,number):
+        plt.setp( self.city_points[city] ,'color','w')
+        plt.setp(self.city_points[city], marker = 'H')
+        plt.setp(self.city_points[city],'ms',20.0)
+        plt.setp(self.city_texts[city], text=str(number))
+
+
+
+    def show_destinations(self,destinations):
+        for index, destination in enumerate(destinations):
+            self.set_city(destination.city1,index)
+            self.set_city(destination.city2,index)
+        #plt.ioff()
+        #plt.show()
     def reset_edge_labels(self,edges):
         for edge in edges:
             plt.setp(self.edge_weights[edge],'color','g')
@@ -136,11 +157,14 @@ class GUI:
 
     def show_edges(self,edges):
         for index,edge in enumerate(edges):
+            print 'updating:'
+            print edge
             plt.setp(self.edge_weights[edge],'color','w')
             plt.setp(self.edge_weights[edge], marker='s')
             plt.setp(self.edge_numbers[edge], text=str(index))
         self.needs_reset = True
-
+        plt.ioff()
+        plt.draw()
 
     def place_cities(self):
         self.cities = {"Atlanta": [775, 516],
@@ -227,6 +251,8 @@ class GUI:
                     self.player_2_cards[str(card)].set_text(str(cards[card]))
                     self.p2_score.set_text(str(scores[player.name]))
                     self.p2_cars.set_text(str(game.get_player_info(player).num_cars))
+
+
 
 
 
