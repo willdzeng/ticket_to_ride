@@ -4,8 +4,8 @@ import game.board as board
 from game import Player, Game
 from game.actions import *
 from game.classes import Colors
-from game.methods import find_paths_for_destinations
-
+from game.methods import find_paths_for_destinations,connected
+import copy
 
 class CFBaseAI(Player):
     """
@@ -21,11 +21,12 @@ class CFBaseAI(Player):
     and `on_already_drew`) can also
     be overridden, and correspond to the behavior under certain conditions when taking an edge is not possible.
     """
+    Edge_Color_Exp = 3
     Edge_Color_Multiplier = 8  # used when calculate how much a edge cost when it's color is not none
     Edge_Score_Multiplier = 0.1  # used to reward a edge based on it's score
     Wild_Card_Cost = 8  # used when claiming routes, how much this claiming action cost when it's using wild card
-    Wild_Card_Value = 3  # used when selecting the best cards to evaluate how much a wild card values
-    Ticket_Score_Multiplier = 1  # used when selecting ticket
+    Wild_Card_Value = 8  # used when selecting the best cards to evaluate how much a wild card values
+    Ticket_Score_Multiplier = 0.5  # used when selecting ticket
     Draw_Ticket_Threshold = 15  # the threshold of number of cars to draw ticket cards
 
     def __init__(self, name):
@@ -75,6 +76,18 @@ class CFBaseAI(Player):
         if info.destinations:
             if self.path is None or not path_clear:
                 self.path, self.all_paths = self.find_best_path(game, info.destinations)
+                if self.path is not None:
+                    if not self.check_path(game,self.path):
+                        print "####################################################"
+                        print "CFBaseAI has a bug: path can't finish the destination"
+                        print "#####################################################"
+                        print "path is ",self.path
+                        print "destination card is :"
+                        for dest in info.destinations:
+                            print dest
+                        print "player edge_claim is :",game.get_edges_for_player(self)
+                        print ""
+                        # assert 0
         else:  # else we don't have path
             self.path = None
 
@@ -136,6 +149,27 @@ class CFBaseAI(Player):
 
         return path, all_paths
 
+    def check_path(self,game,path):
+        """
+        check if a path can complete current destination card
+        :param game: game object
+        :param path: the path to check
+        :return: bool, True if a path can complete the destination card
+        """
+        pseudo_claims = copy.copy(self.edge_claims)
+        for edges in path.edges:
+            pseudo_claims[edges] = self.name
+
+        success = True
+        for destination in self.info.destinations:
+            if connected(destination.city1,destination.city2,self.city_edges,pseudo_claims,self):
+                continue
+            else:
+                success = False
+                break
+
+        return success
+
     def game_ended(self, game):
         pass
 
@@ -152,10 +186,32 @@ class CFBaseAI(Player):
         """
         ## TODO: need to evaluate the best path based on current hand
         cost = 0
-        for edge in path.edges:
-            cost += self.eval_edge(edge, all_paths, game)
+        cards_needed = self.get_cards_needed(path)
+        # for edge in path.edges:
+        #     cost += self.eval_edge(edge, all_paths, game)
 
+        # subtract the cards in hand from cards needed
+        useful_card_num = 0
+        for card in self.info.hand.cards:
+            # ignore the wild card in hand when evaluating cost
+            if card == Colors.none:
+                continue
+            if cards_needed[card] > 0:
+                cards_needed[card] -= 1
+                useful_card_num += 1
+
+        for card, num in cards_needed.iteritems():
+            if num <= 0:
+                continue
+            if card == Colors.none:
+                # if the routes has gray color, directly add the number as cost
+                cost += num
+            else:
+                cost += num^self.Edge_Color_Exp
+
+        # cost -= useful_card_num
         # return - path.score
+        # print path,"has cost ",cost
         return cost
 
     def eval_edge(self, edge, all_paths, game):
@@ -222,7 +278,10 @@ class CFBaseAI(Player):
                     else:
                         cost += cards_needed[card]
                 cost -= self.Edge_Score_Multiplier * board.get_scoring()[action.edge.cost]
-                if self.print_debug: print action, "has cost", cost
+
+                if self.print_debug:
+                    print action, "has cost", cost
+
                 if cost < min_cost:
                     min_cost = cost
                     min_index = index
@@ -281,45 +340,54 @@ class CFBaseAI(Player):
         :param game: The game object.
         :return: The actions to perform.  Will randomly pick from the list of actions.
         """
-        # TODO: This method blew doesn't help with the performance, need to be improved
-        # connect_actions = []
-        # cards_needed = self.get_cards_needed(self.path)
-        # # get all the connection action
-        # for action in self.available_actions:
-        #     if action.is_connect():
-        #         connect_actions.append(action)
-        #
-        # # get possible actions based on it doesn't cost any card in cards_needed
-        # possible_actions = []
-        # if connect_actions:
-        #     for action in connect_actions:
-        #         bad_action = False
-        #         for card in action.cards:
-        #             if cards_needed[card] != 0:
-        #                 bad_action = True
-        #                 break
-        #         if bad_action:
-        #             continue
-        #         else:
-        #             possible_actions.append(action)
-        #
-        # # if there are any possible connection action, choose the one has highest cost,
-        # # which means it has highest score also
-        # if possible_actions:
-        #     max_cost = 0
-        #     max_index = 0
-        #     for index, action in enumerate(possible_actions):
-        #         if action.edge.cost > max_cost:
-        #             max_cost = action.edge.cost
-        #             max_index = index
-        #     best_action = [possible_actions[max_index]]
-        #     if self.print_debug:
-        #         print "####### Found a good connection action that is not in path ######"
-        #         print best_action[0]
-        # else:
-        #     best_action = self.draw_best_card(game)
-
         best_action = self.draw_best_card(game)
+        return best_action
+
+    def claim_other_edge(self,game):
+        """
+        get a best connection action that not belongs to current path
+        :param game:
+        :return: an action
+        """
+        ## TODO: This method blew doesn't help with the performance, need to be improved
+        connect_actions = []
+        cards_needed = self.get_cards_needed(self.path)
+        # get all the connection action
+        for action in self.available_actions:
+            if action.is_connect():
+                connect_actions.append(action)
+
+        # get possible actions based on it doesn't cost any card in cards_needed
+        possible_actions = []
+        if connect_actions:
+            if self.path is None:
+                possible_actions = connect_actions
+            else:
+                for action in connect_actions:
+                    bad_action = False
+                    for card in action.cards:
+                        if cards_needed[card] != 0:
+                            bad_action = True
+                            break
+                    if not bad_action:
+                        possible_actions.append(action)
+
+        # if there are any possible connection action, choose the one has highest cost,
+        # which means it has highest score also
+        if possible_actions:
+            max_cost = 0
+            max_index = 0
+            for index, action in enumerate(possible_actions):
+                if action.edge.cost > max_cost:
+                    max_cost = action.edge.cost
+                    max_index = index
+            best_action = [possible_actions[max_index]]
+            if self.print_debug:
+                print "####### Found a good connection action that is not in path ######"
+                print best_action[0]
+        else:
+            best_action = self.draw_best_card(game)
+
         return best_action
 
     def on_no_more_destinations(self, game):
