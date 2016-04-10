@@ -14,15 +14,15 @@ class Driver:
         self.maximum_rounds = maximum_rounds
         self.game_gui = None
         self.winner = None
-
+        self.game = None
         # Turn off print debug for all players if the driver does not print debug output.
         if not print_debug:
             for player in self.players:
                 player.print_debug = False
 
     def run_game(self):
-        game = self.create_game()
-        self.play_game(game)
+        self.game = self.create_game()
+        self.play_game(self.game)
 
     def create_game(self):
         return Game(self.players, self.maximum_rounds, self.print_debug)
@@ -49,6 +49,8 @@ class Driver:
                     action_result = game.perform_action(player, action_to_perform)
 
                     player.on_action_complete(game, action_result)
+
+
 
                     # Print results.  This happens after the action is performed so the timing is correct when drawing
                     # destinations.
