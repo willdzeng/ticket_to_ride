@@ -22,9 +22,10 @@ class CFActionEvalAI(CFBaseAI):
         for action in self.available_actions:
             value = self.eval_action(action)
             values.append(value)
-            if self.print_debug:
-                print action,"has value",value
-        print self.cards_needed
+            # if self.print_debug:
+            #     print action,"has value",value
+        if self.print_debug:
+             print self.cards_needed
         action = self.available_actions[values.index(max(values))]
         self.action_history.append(action)
 
