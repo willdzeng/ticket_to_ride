@@ -574,13 +574,18 @@ class Game:
         :param action: The action.
         :return: The result of performing the action.
         """
+
+
         result = (False, FailureCause.no_action)
         if action.is_draw_deck():
             result = self.draw_from_deck(player)
+            self._player_info[player].note_draw()
         elif action.is_draw_face_up():
             result = self.draw_face_up_card(player, action.index)
+            self._player_info[player].note_draw()
         elif action.is_connect():
             result = self.connect_cities(player, action.edge, action.cards)
+            self._player_info[player].note_connect()
         elif action.is_draw_destination():
             result = self.draw_destination_cards(player)
 

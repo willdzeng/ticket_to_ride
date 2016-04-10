@@ -106,6 +106,11 @@ class PlayerInfo:
         self.completed_destinations = []
         self.hand = None
         self.num_cars = 0
+        #self.route_score=0
+        #self.ticket_score=0
+        self.draws = 0
+        self.connects = 0
+
 
     def __str__(self):
         return "{\n\tPrivate Score: %s\n" \
@@ -126,6 +131,29 @@ class PlayerInfo:
 
     def set_hand(self,hand):
         self.hand = hand
+
+    def get_destination_points(self):
+        points = 0
+        for dest in self.completed_destinations:
+            points = dest.value + points
+        return points
+
+    def get_destination_deductions(self):
+        points = 0
+        for dest in self.destinations:
+            points = dest.value + points
+        return points
+
+    def get_route_points(self):
+        t_points =self.get_destination_points()
+        m_points = self.get_destination_deductions()
+        return self.score - t_points + m_points
+
+    def note_draw(self):
+        self.draws = self.draws + 1;
+
+    def note_connect(self):
+        self.connects = self.connects + 1;
 
 
 class Path:
