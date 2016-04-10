@@ -16,8 +16,8 @@ p1 = CFRandomAI("CFRandom")
 
 # p2 = CFRandomAI("P1")
 # p2 = CFRandomAI("CFRandom2")
-# p2 = CFBaseAI("CFBaseAI")
-p2 = CFActionEvalAI("CFAE")
+p2 = CFBaseAI("CFBaseAI")
+# p2 = CFActionEvalAI("CFAE")
 # p2 = GreedyAI("P2")
 # p2 = AdversarialAI("P2")
 players = [p1, p2]
