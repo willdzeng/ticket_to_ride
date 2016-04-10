@@ -15,10 +15,10 @@ class Driver:
         self.game_gui = None
         self.winner = None
 
-        # Turn off print debug for all players if the driver does not print debug output.
-        if not print_debug:
-            for player in self.players:
-                player.print_debug = False
+        # Enable or Turn off player's debug
+        for player in self.players:
+            player.print_debug = print_debug
+
 
     def run_game(self):
         game = self.create_game()

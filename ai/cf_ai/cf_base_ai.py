@@ -6,6 +6,7 @@ from game.actions import *
 from game.classes import Colors
 from game.methods import find_paths_for_destinations,connected
 import copy
+from collections import namedtuple, Counter
 
 class CFBaseAI(Player):
     """
@@ -38,6 +39,10 @@ class CFBaseAI(Player):
         self.all_paths = []
         self.info = None
         self.edge_claims = None
+        self.action_history = []
+        self.cards_needed = []
+        self.remaining_edge = []
+        self.path_clear = False
 
     def take_turn(self, game):
         # Update game state first
@@ -47,15 +52,25 @@ class CFBaseAI(Player):
         self.face_up_cards = game.get_face_up_cards()
         self.action_remaining = game.get_remaining_actions(self)
 
-        # the first thing to check is if we already drew.
-        # then we don't need to calculate anything but draw another card
-        if self.action_remaining == 1:
-            action = self.on_already_drew(game)
-            return action[0]
+        if self.action_remaining > 1:
+            self.update_path(game)
 
+        # update cards needed by giving path
+        self.cards_needed = self.get_cards_needed(self.path)
+        self.remaining_edge = self.get_remaining_edge(game)
+
+        action = self.make_decision(game)
+
+        return action
+
+    def update_path(self,game):
+        """
+        Update path
+        :param game:
+        :return:
+        """
         edge_claims = self.edge_claims
         info = self.info
-
         # Get the costs for all edges.
         for edge in edge_claims:
             if edge_claims[edge] == self.name:
@@ -64,17 +79,18 @@ class CFBaseAI(Player):
                 self.edge_costs[edge] = self.eval_edge(edge, self.all_paths, game)
 
         # Make sure that none of the edges in the path have been taken by an opponent.
-        path_clear = True
+        self.path_clear = True
 
         if self.path is not None:
             for edge in self.path.edges:
                 if edge_claims[edge] != self.name and edge_claims[edge] is not None:
-                    path_clear = False
+                    self.path_clear = False
+                    # pass
 
         # Get the path to work with only if it either does not exist or one of the old path's routes has been taken.
         # if we have destination cards, plan a path based on them
         if info.destinations:
-            if self.path is None or not path_clear:
+            if self.path is None or not self.path_clear:
                 self.path, self.all_paths = self.find_best_path(game, info.destinations)
                 if self.path is not None:
                     if not self.check_path(game,self.path):
@@ -91,12 +107,17 @@ class CFBaseAI(Player):
         else:  # else we don't have path
             self.path = None
 
-        # TODO: need to discuss what should we do if the path search can't find a path but we still have tickets card
-        # TODO: Put print statements into separate method.  Maybe have 2 different debug prints?
-        if self.print_debug:
-            # print "Path: %s" % self.path
-            print "Path is clear" if path_clear else "Path is not clear"
-
+    def make_decision(self,game):
+        """
+        actual decision making part
+        :param game:
+        :return: the action AI choose to make
+        """
+        # the first thing to check is if we already drew.
+        # then we don't need to calculate anything but draw another card
+        if self.action_remaining == 1:
+            action = self.on_already_drew(game)
+            return action[0]
         # if we can't get a path after re-calculate then we need to decide if we want to draw a new destination card
         if self.path is None:
             if self.print_debug:
@@ -184,7 +205,6 @@ class CFBaseAI(Player):
         :param game: The game object.
         :return: An integer for the cost of the path.  Lower numbers mean the path is more likely to be selected.
         """
-        ## TODO: need to evaluate the best path based on current hand
         cost = 0
         cards_needed = self.get_cards_needed(path)
         # for edge in path.edges:
@@ -272,13 +292,18 @@ class CFBaseAI(Player):
             min_cost = float("inf")
             for index, action in enumerate(all_connection_actions):
                 cost = 0
+                wild_card_used = 0
+                color_card_used = 0
                 for card in action.cards:
                     if card == Colors.none:
                         cost += self.Wild_Card_Cost
+                        wild_card_used += 1
                     else:
                         cost += cards_needed[card]
+                        color_card_used += 1
                 cost -= self.Edge_Score_Multiplier * board.get_scoring()[action.edge.cost]
-
+                ## TODO: need to avoid AI use wild cards on small route.
+                ## TODO: need to avoid AI use other color cards on small route.
                 if self.print_debug:
                     print action, "has cost", cost
 
@@ -315,7 +340,7 @@ class CFBaseAI(Player):
             if action.is_connect():
                 connect_action.append(action)
 
-        # if we have any connection action, find the best one
+        # if we have any connection action, find the best one based on it's score
         if connect_action:
             # choose the best connection action based on how much score it has
             maximum_score = 0
@@ -420,7 +445,8 @@ class CFBaseAI(Player):
         :param path: the path to evaluate
         :return: the cards dictionary {card_index : number_of_cards}
         """
-        cards_needed = {i: 0 for i in range(9)}
+        # cards_needed = {i: 0 for i in range(9)}
+        cards_needed = Counter()
         if path is not None:
             for edge in path.edges:
                 # if we already have this edge, we don't need this card anymore
@@ -560,6 +586,16 @@ class CFBaseAI(Player):
 
         return selected_destinations
 
+    def get_remaining_edge(self,game):
+        """
+        return the remaining edge
+        :param game:
+        :return:
+        """
+        player_edge_claimed = game.get_edges_for_player(self)
+        remaining_edges = self.path.edges - player_edge_claimed if self.path is not None else []
+        return remaining_edges
+
     def debug_print(self, game):
         """
         print some more detailed info, activated by the game manager
@@ -568,7 +604,7 @@ class CFBaseAI(Player):
         """
         player_edge_claimed = game.get_edges_for_player(self)
         remaining_edges = self.path.edges - player_edge_claimed if self.path is not None else []
-
-        return "Path:%s\nRemaining Edges: [%s]\nEdge Claimed: [%s]" \
-               % (str(self.path), ", ".join([str(edge) for edge in remaining_edges]),
+        return "Path:%s\n%s\nRemaining Edges: [%s]\nEdge Claimed: [%s]" \
+               % (str(self.path),"Path is clear" if self.path_clear else "Path is not clear",
+                  ", ".join([str(edge) for edge in remaining_edges]),
                   ", ".join([str(edge) for edge in player_edge_claimed]))
