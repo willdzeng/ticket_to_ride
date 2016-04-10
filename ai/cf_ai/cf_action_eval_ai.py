@@ -6,7 +6,7 @@ from game.actions import *
 from game.classes import Colors
 from game.methods import find_paths_for_destinations
 from cf_base_ai import CFBaseAI
-class CFDMCFAI(CFBaseAI):
+class CFActionEvalAI(CFBaseAI):
     "Evaluate Every Action Based on the cost function"
 
     Destination_Threshold = 15
