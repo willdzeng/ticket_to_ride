@@ -50,32 +50,30 @@ class CFActionEvalAI(CFBaseAI):
 
             if self.path is not None:
                 if action.edge in self.remaining_edge:
-                    print "AAAAAAAAAAAAAAAAAAAAAAAAAA"
+                    # intuition here is:
+                    # when we just have a few edge remains, the action to claim those edge would be high
                     value += board.get_scoring()[action.edge.cost] + self.path.cost - remaining_edge_score
-                    # for edge in self.remaining_edge:
-                    #     value -= edge.cost
-                             # - len(self.remaining_edge)
-                    print value
-                    #+ self.path.score
+                    if self.print_debug:
+                        print "Found a good action that in the remaining edges"
+                        print "Before counting for the card cost it has value:",value
                 else: # edge is not in path
-                    value += -self.path.cost + remaining_edge_score
+                    # intuition here is if the we have path, and we may still claim it
+                    # if it has higher score than the remaining destination
+                    # value += board.get_scoring()[action.edge.cost] - self.path.cost
+                    # intuition here is never claim other routes
+                    value += -1
                 # subtract the cost of card using if we have a path
                 for card in action.cards.elements():
-                    # print Colors.str_card(card)
                     # if card is Wild card
                     if card == Colors.none:
                         value -= self.Wild_Card_Cost
                     else:
                         # if edge is gray
-
                         if action.edge.color == Colors.none:
                             value -= self.cards_needed[card]
             else: # if path is None
                 # when we don't have path, we better claim the best path that has the highest score
                 value += board.get_scoring()[action.edge.cost]
-
-            # print "Edge Color is",Colors.str(action.edge.color)
-
             return value
 
         if action.is_draw_destination():
@@ -102,3 +100,4 @@ class CFActionEvalAI(CFBaseAI):
             print "CFAE made decisions as below:"
             for action in self.action_history:
                 print action
+            print "########\nDi:To cancel the action print in cf_action_eval_ai.py line 25-26\n#########\n"
