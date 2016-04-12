@@ -45,6 +45,11 @@ class CFBaseAI(Player):
         self.path_clear = False
 
     def take_turn(self, game):
+        """
+        take the turn of the game and return a action to the game manager
+        :param game:
+        :return:
+        """
         # Update game state first
         self.info = game.get_player_info(self)
         self.edge_claims = game.get_edge_claims()
@@ -486,16 +491,17 @@ class CFBaseAI(Player):
 
             # TODO: need to add evaluation of draw face up cards if we have gray routes
 
+            ##################################
             # TODO: this method below doesn't improve the performance need to be improved
             # check if we have gray color routes and we have some extra card
             # gray_cards = cards_needed[Colors.none]
-
             # if not gray_cards == 0:
             #     print "###### have gray routes ######"
             #     extra_hand_cards = self.get_extra_hand_cards(game)
             #     for index,card in enumerate(self.face_up_cards):
             #         values[index] = extra_hand_cards[card]
             # print values
+            ##################################
 
             for index, card in enumerate(self.face_up_cards):
                 # if the card is a wild card

@@ -17,6 +17,11 @@ class CFActionEvalAI(CFBaseAI):
 
 
     def make_decision(self,game):
+        """
+        Evaluate every available action and select the best
+        :param game:
+        :return:
+        """
          # decision making part
         values = []
         for action in self.available_actions:

@@ -477,8 +477,17 @@ class Game:
         if self._num_actions_remaining != 2:
             return False, FailureCause.already_drew
 
+        if edge not in self._edges:
+            return False, FailureCause.no_route
+
+        if self._edge_claims[edge] != player.name:
+            return False, FailureCause.already_claimed_opponent
+
+        if self._edge_claims[edge] == player.name:
+            return False, FailureCause.already_claimed_self
+
         # Find the edge and claim it if possible.
-        if edge in self._edges and not self._edge_is_claimed(edge):
+        if not self._edge_is_claimed(edge):
             # Player must have the given cards.
             if not self.in_hand(player, cards):
                 return False, FailureCause.missing_cards
@@ -515,14 +524,6 @@ class Game:
 
             return True, FailureCause.none
 
-        if edge not in self._edges:
-            return False, FailureCause.no_route
-
-        if self._edge_claims[edge] != player.name:
-            return False, FailureCause.already_claimed_opponent
-
-        if self._edge_claims[edge] != player.name:
-            return False, FailureCause.already_claimed_self
 
     def get_available_actions(self, player):
         """
