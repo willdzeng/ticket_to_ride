@@ -1,4 +1,4 @@
-import time
+from time import time
 from game import Game
 from game.classes import FailureCause
 
@@ -15,6 +15,7 @@ class Driver:
         self.game_gui = None
         self.winner = None
         self.game = None
+        self.game_start_time = 0
 
         # Enable or Turn off player's debug
         for player in self.players:
@@ -28,12 +29,12 @@ class Driver:
         return Game(self.players, self.maximum_rounds, self.print_debug)
 
     def play_game(self, game):
+        self.game_start_time = time()
 
         if self.use_gui:
             from gui import gui
             self.game_gui = gui.GUI()
-            game.gui = self.game_gui; #I thought this would not be too terrible 
-
+            game.gui = self.game_gui;  # I thought this would not be too terrible
 
         # Main game loop.  Tells players when to take their turn.
         while not game.is_game_over()[0]:
@@ -50,8 +51,6 @@ class Driver:
                     action_result = game.perform_action(player, action_to_perform)
 
                     player.on_action_complete(game, action_result)
-
-
 
                     # Print results.  This happens after the action is performed so the timing is correct when drawing
                     # destinations.
@@ -83,6 +82,7 @@ class Driver:
         for player in self.players:
             player.game_ended(game)
         self.winner = game.is_game_over()[1]
+        print "Execution Time: %.2f seconds" % (time() - self.game_start_time)
         print "Game Over"
         print "Winner: %s" % self.winner
         print "Final Scores: %s" % game.get_visible_scores()

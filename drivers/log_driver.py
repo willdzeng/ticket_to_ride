@@ -1,6 +1,5 @@
 from collections import deque
 from copy import copy, deepcopy
-
 from drivers.driver import Driver
 from game import init_decks, Game, create_board
 from logging.csv_log import CSVLog

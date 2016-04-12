@@ -21,10 +21,10 @@ p2 = CFBaseAI("CF Base AI")
 # p2 = RandomAI("R2")
 # p2 = GreedyAI("P2")
 p3 = AdversarialAI("Adversarial AI")
-players = [p1, p2, p3]
+players = [p1, p2]
 
-driver = LogDriver(use_gui=False, players=players, print_debug=False, iterations=2, switch_order=True)
+driver = LogDriver(use_gui=True, players=players, print_debug=False, iterations=2, switch_order=True)
 
-# driver = Driver(use_gui=False, players=players)
+# driver = Driver(use_gui=True, players=players)
 
 driver.run_game()
