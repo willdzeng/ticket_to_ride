@@ -480,7 +480,7 @@ class Game:
         if edge not in self._edges:
             return False, FailureCause.no_route
 
-        if self._edge_claims[edge] != player.name:
+        if self._edge_claims[edge] is not None and self._edge_claims[edge] != player.name:
             return False, FailureCause.already_claimed_opponent
 
         if self._edge_claims[edge] == player.name:
