@@ -24,6 +24,9 @@ p2 = CFBaseAI("CF Base AI")
 p3 = AdversarialAI("Adversarial AI")
 players = [p3, p2]
 
+# To have multiple tests run at once, create multiple log drivers with different combinations of players, then run each
+# one.
+
 driver = LogDriver(use_gui=False, players=players, print_debug=False, iterations=1, switch_order=True,
                    replay_deck=True, replay_destinations=True)
 
