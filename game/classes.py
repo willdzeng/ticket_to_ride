@@ -32,7 +32,7 @@ class FailureCause:
     cause_list = ['None', 'No Route', "Wrong Turn", "Missing Cards", "Incompatible Cards", "Already Drew",
                   "Invalid Card Index", "Insufficient Cars", "Game Over", "Deck out of Cards", "No Action",
                   "Incorrect Destinations", "Edge Claimed by Opponent", "Edge Claimed by Self",
-                  "Not Enough Destination Cards","Incorrect "]
+                  "Not Enough Destination Cards", "Incorrect "]
 
     @staticmethod
     def str(failure_cause):
@@ -106,11 +106,10 @@ class PlayerInfo:
         self.completed_destinations = []
         self.hand = None
         self.num_cars = 0
-        #self.route_score=0
-        #self.ticket_score=0
+        # self.route_score=0
+        # self.ticket_score=0
         self.draws = 0
         self.connects = 0
-
 
     def __str__(self):
         return "{\n\tPrivate Score: %s\n" \
@@ -120,16 +119,17 @@ class PlayerInfo:
                "\tCompleted Destinations: [%s]}" % (str(self.score), str(self.hand), str(self.num_cars),
                                                     ", ".join(map(str, self.destinations)),
                                                     ", ".join(map(str, self.completed_destinations)))
-    def set_num_cars(self,num_cars):
+
+    def set_num_cars(self, num_cars):
         self.num_cars = num_cars
 
-    def set_score(self,score):
+    def set_score(self, score):
         self.score = score
 
-    def set_destinations(self,destinations):
+    def set_destinations(self, destinations):
         self.destinations = destinations
 
-    def set_hand(self,hand):
+    def set_hand(self, hand):
         self.hand = hand
 
     def get_destination_points(self):
@@ -145,15 +145,15 @@ class PlayerInfo:
         return points
 
     def get_route_points(self):
-        t_points =self.get_destination_points()
+        t_points = self.get_destination_points()
         m_points = self.get_destination_deductions()
         return self.score - t_points + m_points
 
     def note_draw(self):
-        self.draws = self.draws + 1;
+        self.draws = self.draws + 1
 
     def note_connect(self):
-        self.connects = self.connects + 1;
+        self.connects = self.connects + 1
 
 
 class Path:
@@ -182,10 +182,10 @@ class Path:
 
     def __repr__(self):
         return "( Cost: %s, Score: %s, [%s])" % (str(self.cost), str(self.score),
-                                   ", ".join(["(%s, %s, %s, %s)" % (edge.city1,
-                                                                    edge.city2,
-                                                                    Colors.str(edge.color),
-                                                                    edge.cost) for edge in self.edges]))
+                                                 ", ".join(["(%s, %s, %s, %s)" % (edge.city1,
+                                                                                  edge.city2,
+                                                                                  Colors.str(edge.color),
+                                                                                  edge.cost) for edge in self.edges]))
 
 
 class HistoryEvent:

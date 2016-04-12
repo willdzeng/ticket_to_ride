@@ -4,9 +4,10 @@ import game.board as board
 from game import Player, Game
 from game.actions import *
 from game.classes import Colors
-from game.methods import find_paths_for_destinations,connected
+from game.methods import find_paths_for_destinations, connected
 import copy
 from collections import namedtuple, Counter
+
 
 class CFBaseAI(Player):
     """
@@ -68,7 +69,7 @@ class CFBaseAI(Player):
 
         return action
 
-    def update_path(self,game):
+    def update_path(self, game):
         """
         Update path
         :param game:
@@ -101,18 +102,19 @@ class CFBaseAI(Player):
             self.path = None
 
         if self.path is not None:
-            if not self.check_path(game,self.path):
+            if not self.check_path(game, self.path):
                 print "####################################################"
-                print "CFBaseAI has a bug: path can't finish the destination"
+                print self.name, " has a bug: path can't finish the destination"
                 print "#####################################################"
-                print "path is ",self.path
+                print "path is ", self.path
                 print "destination card is :"
                 for dest in info.destinations:
                     print dest
-                print "player edge_claim is :",game.get_edges_for_player(self)
+                print "player edge_claim is :", game.get_edges_for_player(self)
                 print ""
                 # assert 0
-    def make_decision(self,game):
+
+    def make_decision(self, game):
         """
         actual decision making part
         :param game:
@@ -175,7 +177,7 @@ class CFBaseAI(Player):
 
         return path, all_paths
 
-    def check_path(self,game,path):
+    def check_path(self, game, path):
         """
         check if a path can complete current destination card
         :param game: game object
@@ -188,7 +190,7 @@ class CFBaseAI(Player):
 
         success = True
         for destination in self.info.destinations:
-            if connected(destination.city1,destination.city2,self.city_edges,pseudo_claims,self):
+            if connected(destination.city1, destination.city2, self.city_edges, pseudo_claims, self):
                 continue
             else:
                 success = False
@@ -232,7 +234,7 @@ class CFBaseAI(Player):
                 # if the routes has gray color, directly add the number as cost
                 cost += num
             else:
-                cost += num^self.Edge_Color_Exp
+                cost += num ^ self.Edge_Color_Exp
 
         # cost -= useful_card_num
         # return - path.score
@@ -373,7 +375,7 @@ class CFBaseAI(Player):
         best_action = self.draw_best_card(game)
         return best_action
 
-    def claim_other_edge(self,game):
+    def claim_other_edge(self, game):
         """
         get a best connection action that not belongs to current path
         :param game:
@@ -592,7 +594,7 @@ class CFBaseAI(Player):
 
         return selected_destinations
 
-    def get_remaining_edge(self,game):
+    def get_remaining_edge(self, game):
         """
         return the remaining edge
         :param game:
@@ -611,7 +613,7 @@ class CFBaseAI(Player):
         player_edge_claimed = game.get_edges_for_player(self)
         remaining_edges = self.path.edges - player_edge_claimed if self.path is not None else []
         return "Path:%s\n%s\nRemaining Edges: [%s]\nEdge Claimed: [%s]" \
-               % (str(self.path),"Path is clear" if self.path_clear else "Path is not clear",
+               % (str(self.path), "Path is clear" if self.path_clear else "Path is not clear",
                   ", ".join([str(edge) for edge in remaining_edges]),
                   ", ".join([str(edge) for edge in player_edge_claimed]))
 
@@ -621,7 +623,7 @@ class CFBaseAI(Player):
         :return:
         """
         str = "Cards Needed are:[ "
-        for card,num in self.cards_needed.iteritems():
-            str += ("%s:%d "%(Colors.str(card),num))
-        str +="]"
+        for card, num in self.cards_needed.iteritems():
+            str += ("%s:%d " % (Colors.str(card), num))
+        str += "]"
         print str

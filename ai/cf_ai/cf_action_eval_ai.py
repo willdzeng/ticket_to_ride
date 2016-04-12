@@ -6,15 +6,17 @@ from game.actions import *
 from game.classes import Colors
 from game.methods import find_paths_for_destinations
 from cf_base_ai import CFBaseAI
+
+
 class CFActionEvalAI(CFBaseAI):
     "Evaluate Every Action Based on the cost function"
 
     Destination_Threshold = 15
     Wild_Card_Value = 2
     Wild_Card_Cost = 7
+
     def __init__(self, name):
         CFBaseAI.__init__(self, name)
-
 
     def make_decision(self,game):
         """
@@ -28,7 +30,7 @@ class CFActionEvalAI(CFBaseAI):
             value = self.eval_action(action)
             values.append(value)
             if self.print_debug:
-                print action,"has value",value
+                print action, "has value", value
         if self.print_debug:
             self.print_cards_needed()
 
@@ -37,7 +39,7 @@ class CFActionEvalAI(CFBaseAI):
 
         return action
 
-    def eval_action(self,action):
+    def eval_action(self, action):
         """
         Evaluate action based on path and cost function
         :param action: the action to be evaluated
@@ -60,8 +62,8 @@ class CFActionEvalAI(CFBaseAI):
                     value += board.get_scoring()[action.edge.cost] + self.path.cost - remaining_edge_score
                     if self.print_debug:
                         print "Found a good action that in the remaining edges"
-                        print "Before counting for the card cost it has value:",value
-                else: # edge is not in path
+                        print "Before counting for the card cost it has value:", value
+                else:  # edge is not in path
                     # intuition here is if the we have path, and we may still claim it
                     # if it has higher score than the remaining destination
                     # value += board.get_scoring()[action.edge.cost] - self.path.cost
@@ -76,7 +78,7 @@ class CFActionEvalAI(CFBaseAI):
                         # if edge is gray
                         if action.edge.color == Colors.none:
                             value -= self.cards_needed[card]
-            else: # if path is None
+            else:  # if path is None
                 # when we don't have path, we better claim the best path that has the highest score
                 value += board.get_scoring()[action.edge.cost]
             return value
@@ -84,7 +86,7 @@ class CFActionEvalAI(CFBaseAI):
         if action.is_draw_destination():
             if self.info.destinations:
                 return -1
-            else: # if we don't have destination card
+            else:  # if we don't have destination card
                 value = -self.Destination_Threshold + self.info.num_cars
                 return value
 
@@ -98,7 +100,6 @@ class CFActionEvalAI(CFBaseAI):
             else:
                 value += self.cards_needed[action.card]
             return value
-
 
     def game_ended(self, game):
         if self.print_debug:

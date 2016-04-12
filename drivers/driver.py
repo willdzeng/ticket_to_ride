@@ -1,4 +1,4 @@
-from time import time
+from time import time, sleep
 from game import Game
 from game.classes import FailureCause
 
@@ -34,7 +34,7 @@ class Driver:
         if self.use_gui:
             from gui import gui
             self.game_gui = gui.GUI()
-            game.gui = self.game_gui;  # I thought this would not be too terrible
+            game.gui = self.game_gui  # I thought this would not be too terrible
 
         # Main game loop.  Tells players when to take their turn.
         while not game.is_game_over()[0]:
@@ -71,7 +71,7 @@ class Driver:
                         raise Exception("Failure", FailureCause.str(action_result[1]))
 
                     if self.pause_between_turns > 0:
-                        time.sleep(self.pause_between_turns)
+                        sleep(self.pause_between_turns)
 
                     break
 

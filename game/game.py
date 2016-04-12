@@ -8,14 +8,16 @@ from board import create_board, get_scoring
 from cards import init_decks, shuffle_deck, shuffle_destinations
 from classes import PlayerInfo, FailureCause, HistoryEvent, Hand
 from methods import connected
-#from gui import GUI
+
+
+# from gui import GUI
 
 class Game:
     STARTING_HAND_SIZE = 4
     DEFAULT_NUM_CARS = 45
 
     def __init__(self, players, maximum_rounds=5000, print_debug=False, custom_settings=False, city_edges=None, \
-                                                                                                       edges=None, 
+                 edges=None,
                  deck=None,
                  destinations=None, num_cars=45):
         if not custom_settings:
@@ -29,7 +31,7 @@ class Game:
             self._destinations = destinations
 
             self._num_cars = num_cars
-            
+
         self.print_debug = print_debug
         self._maximum_rounds = maximum_rounds
         self._rounds_count = 0
@@ -61,7 +63,7 @@ class Game:
 
             if self.print_debug:
                 print player, "is selecting initial tickets"
-                
+
             destinations = player.select_starting_destinations(self, possible_destinations)
 
             if len(destinations) < 2:
@@ -75,7 +77,7 @@ class Game:
 
                 # Reduce score by all incomplete destinations.
                 score -= destination.value
-            
+
             if self.print_debug:
                 print player, "selected tickets", destinations
 
@@ -116,16 +118,20 @@ class Game:
 
     def _track_double_edges(self):
         """
-        populate dictionary of edges which connect the same city
+        Populate dictionary of edges which connect the same city
         """
         for edge1 in self._edge_claims:
             for edge2 in self._edge_claims:
                 if edge1 is not edge2:
                     if edge1.city1 is edge2.city1 and edge1.city2 is edge2.city2:
-                        # print 'Saying the following are double edges'
-                        # print edge1
-                        # print edge2 
                         self._double_edges[edge1] = edge2
+
+    def get_double_edges_dict(self):
+        """
+        Get the double edges dictionary.
+        :return: The double edges dictionary.
+        """
+        return deepcopy(self._double_edges)
 
     def get_edge_claims(self):
         """
@@ -377,6 +383,8 @@ class Game:
         # Check that the deck is not empty.
         self._check_deck()
 
+        self._player_info[player].note_draw()
+
         return True, FailureCause.none
 
     def draw_from_deck(self, player):
@@ -411,6 +419,8 @@ class Game:
 
         # Check that the deck is not empty.
         self._check_deck()
+
+        self._player_info[player].note_draw()
 
         return True, FailureCause.none
 
@@ -522,6 +532,8 @@ class Game:
             # Update history.
             self._history.append(HistoryEvent(player.name, ConnectAction(edge, cards)))
 
+            self._player_info[player].note_connect()
+
             return True, FailureCause.none
 
 
@@ -576,17 +588,13 @@ class Game:
         :return: The result of performing the action.
         """
 
-
         result = (False, FailureCause.no_action)
         if action.is_draw_deck():
             result = self.draw_from_deck(player)
-            self._player_info[player].note_draw()
         elif action.is_draw_face_up():
             result = self.draw_face_up_card(player, action.index)
-            self._player_info[player].note_draw()
         elif action.is_connect():
             result = self.connect_cities(player, action.edge, action.cards)
-            self._player_info[player].note_connect()
         elif action.is_draw_destination():
             result = self.draw_destination_cards(player)
 
@@ -605,13 +613,8 @@ class Game:
         result = []
 
         # A short circuit in case there definitely can't be enough cards.
-        # TODO: potential bug: if most_common returns wild card, then wild card would be counted twice.
+        # It's okay if colorless cards get counted twice, since this is just an estimate.
         if edge.cost > cards.most_common(1)[0][1] + cards[Colors.none]:
-            #print 'not enough cards for edge size %f'% edge.cost
-            #print 'these are the cards'
-            #print cards
-            #print 'this is the most card number'
-            #print cards.most_common(1)[0][1]
             return result
         # check if the player has enough cars
         if edge.cost > num_cars:
@@ -642,7 +645,6 @@ class Game:
             result.append(ConnectAction(edge, Counter({Colors.none: edge.cost})))
 
         return result
- 
 
     def _lose_cards(self, player, cards):
         """
@@ -726,7 +728,7 @@ class Game:
         # Trigger all events for when the game ends.
         for event in self._game_ended_events:
             event(self)
-            
+
         if self.print_debug:
             print "Rounds played: %d" % self._rounds_count
 

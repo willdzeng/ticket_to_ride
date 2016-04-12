@@ -253,11 +253,8 @@ def threatened_edge_near(start_city, player_cities, player, depth, routes):
 
         if (city_edge[0] in player_cities):
 
-            cost = depth_of_path_from(player, city_edge[1].city1, player_cities, routes) + depth_of_path_from(player,
-                                                                                                              city_edge[
-                                                                                                                  1].city2,
-                                                                                                              player_cities,
-                                                                                                              routes)
+            cost = depth_of_path_from(player, city_edge[1].city1, player_cities, routes) + \
+                   depth_of_path_from(player, city_edge[1].city2, player_cities, routes)
             # city_edge[1].cost = cost;
             if cost > 2:
                 harmful_edges.append(city_edge[1])
