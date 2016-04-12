@@ -56,7 +56,7 @@ class GUI:
             x_1.append(self.cities[edge.city2][0] + offset * x_offset)
             y_1.append(self.cities[edge.city2][1] + offset * y_offset)
             self.edge_colors[edge]= plt.plot(x_1, y_1, self.colors[edge.color])
-            plt.setp(self.edge_colors[edge], linewidth=2)
+            plt.setp(self.edge_colors[edge], linewidth=4)
 
             x_mean = (x_1[0] +x_1[1])/2
             y_mean = (y_1[0] +y_1[1])/2
@@ -142,18 +142,33 @@ class GUI:
         plt.setp(self.city_texts[city], text=str(number))
 
 
-
+    #Display the destinations
     def show_destinations(self,destinations):
         for index, destination in enumerate(destinations):
             self.set_city(destination.city1,index)
             self.set_city(destination.city2,index)
         #plt.ioff()
         #plt.show()
+
+    def show_path(self,path):
+        print 'in show path'
+        for edge in path.edges:
+            print edge
+            plt.setp(self.edge_colors[edge],linewidth=10)
+            plt.setp(self.edge_colors[edge], linestyle='solid')
+        self.needs_reset = True
+        plt.ioff()
+        plt.draw()
+
+
     def reset_edge_labels(self,edges):
         for edge in edges:
             plt.setp(self.edge_weights[edge],'color','g')
             plt.setp(self.edge_weights[edge], marker='o')
+            plt.setp(self.edge_weights[edge],linewidth=2)
             plt.setp(self.edge_numbers[edge], text=str(edge.cost))
+            plt.setp(self.edge_colors[edge],linewidth=2)
+            plt.setp(self.edge_colors[edge], linestyle='solid')
 
     def show_edges(self,edges):
         for index,edge in enumerate(edges):
@@ -162,6 +177,8 @@ class GUI:
             plt.setp(self.edge_weights[edge],'color','w')
             plt.setp(self.edge_weights[edge], marker='s')
             plt.setp(self.edge_numbers[edge], text=str(index))
+
+
         self.needs_reset = True
         plt.ioff()
         plt.draw()
@@ -258,11 +275,15 @@ class GUI:
 
     def update_edges(self,game):
         edges = game.get_edge_claims()
-        
-        for edge in edges:
+
+
+        #scoring = dict()
+
+        for index, edge in enumerate(edges):
             #print(edge)
             #print(edges[edge])
-                    
+
+            #scoring[edge.cost] = 0
 
             if(edges[edge] == 'P1'):
                 plt.setp(self.edge_weights[edge],'color','b')
@@ -287,6 +308,8 @@ class GUI:
                 #print(self.cards_pos_y[j])
 
                # plt.text(self.cards_pos_x[int(card)], self.cards_pos_y[j], str(cards[card]), fontdict=None)
+        #path = Path(edges,scoring)
+        #self.show_path(path)
 
 
     def update_game_ended(self, game):
