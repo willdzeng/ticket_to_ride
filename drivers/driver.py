@@ -40,10 +40,11 @@ class Driver:
             for player in self.players:
                 if game.is_turn(player):
                     action_to_perform = player.take_turn(game)
+
+                    player_info = game.get_player_info(player)
                     if self.use_gui:
                         self.game_gui.update(game)
 
-                    player_info = game.get_player_info(player)
 
                     # Perform action.
                     action_result = game.perform_action(player, action_to_perform)

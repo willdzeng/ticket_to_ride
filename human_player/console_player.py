@@ -13,6 +13,9 @@ class ConsolePlayer(Player):
         #self.gui = gui
 
     def take_turn(self, game):
+        
+        
+
         self._drew_card_from_deck = False
         action = None
         all_actions = game.get_available_actions(self)
@@ -20,6 +23,11 @@ class ConsolePlayer(Player):
 
         print "Scores: %s" % game.get_visible_scores()
         print "Status: %s" % self.player_info
+
+        if game.gui:
+            #print 'attempting to display edges'
+            game.gui.update(game)
+            game.gui.show_destinations(self.player_info.destinations)
 
         # Loop until there is an action to take.
         while action is None:
