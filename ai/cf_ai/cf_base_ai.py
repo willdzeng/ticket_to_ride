@@ -40,7 +40,7 @@ class CFBaseAI(Player):
         self.info = None
         self.edge_claims = None
         self.action_history = []
-        self.cards_needed = []
+        self.cards_needed = Counter()
         self.remaining_edge = []
         self.path_clear = False
 
@@ -92,21 +92,21 @@ class CFBaseAI(Player):
         if info.destinations:
             if self.path is None or not self.path_clear:
                 self.path, self.all_paths = self.find_best_path(game, info.destinations)
-                if self.path is not None:
-                    if not self.check_path(game,self.path):
-                        print "####################################################"
-                        print "CFBaseAI has a bug: path can't finish the destination"
-                        print "#####################################################"
-                        print "path is ",self.path
-                        print "destination card is :"
-                        for dest in info.destinations:
-                            print dest
-                        print "player edge_claim is :",game.get_edges_for_player(self)
-                        print ""
-                        # assert 0
         else:  # else we don't have path
             self.path = None
 
+        if self.path is not None:
+            if not self.check_path(game,self.path):
+                print "####################################################"
+                print "CFBaseAI has a bug: path can't finish the destination"
+                print "#####################################################"
+                print "path is ",self.path
+                print "destination card is :"
+                for dest in info.destinations:
+                    print dest
+                print "player edge_claim is :",game.get_edges_for_player(self)
+                print ""
+                # assert 0
     def make_decision(self,game):
         """
         actual decision making part
@@ -212,7 +212,7 @@ class CFBaseAI(Player):
 
         # subtract the cards in hand from cards needed
         useful_card_num = 0
-        for card in self.info.hand.cards:
+        for card in self.info.hand.cards.elements():
             # ignore the wild card in hand when evaluating cost
             if card == Colors.none:
                 continue
@@ -463,7 +463,7 @@ class CFBaseAI(Player):
         """
         cards_needed = self.get_cards_needed(self.path)
         extra_hand_cards = {i: 0 for i in range(9)}
-        for card in self.info.hand.cards:
+        for card in self.info.hand.cards.elements():
             if cards_needed[card] == 0:
                 extra_hand_cards[card] += 1
 
@@ -608,3 +608,14 @@ class CFBaseAI(Player):
                % (str(self.path),"Path is clear" if self.path_clear else "Path is not clear",
                   ", ".join([str(edge) for edge in remaining_edges]),
                   ", ".join([str(edge) for edge in player_edge_claimed]))
+
+    def print_cards_needed(self):
+        """
+        print the cards needed
+        :return:
+        """
+        str = "Cards Needed are:[ "
+        for card,num in self.cards_needed.iteritems():
+            str += ("%s:%d "%(Colors.str(card),num))
+        str +="]"
+        print str
