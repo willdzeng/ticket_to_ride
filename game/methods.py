@@ -298,7 +298,7 @@ def threatened_edge_near(start_city, player_cities, player, min_num_cars, routes
                 #print city2_extent['edges']
                 if not city_in_edges(city1,city2_extent['edges']):
                     #print 'cost: %f'% cost
-                    harmful_edges.append([city_edge[1],cost])
+                    harmful_edges.append([city_edge[1],city1_extent['edges'],city2_extent['edges']])
             
     return harmful_edges
 
@@ -321,7 +321,7 @@ def get_player_cities(player, routes):
 
 """
 Get edges of that are easily threatened for a specific player
------->Steve, this is the method you want
+------>Di and Steve, this is the method you want
 :param player: the player whom you are checking for threats
 :param routes: the dictionary of claimed edges
 :param min_num_cars: the minium number of cars on the path you are bisecting
