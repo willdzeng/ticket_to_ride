@@ -325,7 +325,7 @@ Get edges of that are easily threatened for a specific player
 :param player: the player whom you are checking for threats
 :param routes: the dictionary of claimed edges
 :param min_num_cars: the minium number of cars on the path you are bisecting
-:return: list([threatened_edge,path_car_length])
+:return: list([threatened_edge,edges_side_a,edges_side_b])
 """
 def get_threatened_edges(player, routes,min_num_cars = 1):
     threatened_edges = list()
