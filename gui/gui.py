@@ -64,7 +64,7 @@ class GUI:
 
             self.edge_weights[edge] =plt.plot(x_mean,y_mean,'go')
             plt.setp(self.edge_weights[edge],'ms',15.0)
-            self.edge_numbers[edge] = plt.text(x_mean-7,y_mean+7,str(edge.cost),fontdict=None)
+            self.edge_numbers[edge] = plt.text(x_mean-5,y_mean+5,str(edge.cost),fontdict=None)
 
         for city in self.cities:
             self.city_points[city] = plt.plot(self.cities[city][0], self.cities[city][1], 'ro')

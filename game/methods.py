@@ -172,33 +172,33 @@ param: allow_loop_back = wheather or not
 """
 
 
-def brushfire_from(start_city, depth, player, allow_loop_back, routes):
+def brushfire_from(start_city, player, allow_loop_back, routes):
     actual_depth = 0
     burned_cities = list()
     burning_cities = list()
     leaves = list()
-    print 'Now determining extent for %s' % start_city
+    #print 'Now determining extent for %s' % start_city
     burning_cities.append([start_city, actual_depth,[]])
     while  burning_cities:
         expanded = False
         burn_city = burning_cities.pop(0)
         burned_cities.append(burn_city[0])
 
-        print 'burned_cities'
-        print burned_cities
+        #print 'burned_cities'
+        #print burned_cities
 
-        print 'on back_burner:'
-        print burning_cities
+        #print 'on back_burner:'
+        #print burning_cities
 
-        print 'burning: %s' % burn_city
+        #print 'burning: %s' % burn_city
 
         for city_edge in get_adjacent_cities(burn_city[0], routes, player):
-            print 'city_edge is: %s' % str(city_edge)
+            #print 'city_edge is: %s' % str(city_edge)
             if (city_edge[0] not in burned_cities):
-                print 'in burn, current edge history'
+                #print 'in burn, current edge history'
                 edges = burn_city[2][:]
                 edges.append(city_edge[1])
-                print edges
+                #print edges
                 expanded= True;
                 burning_cities.append([city_edge[0], burn_city[1] + 1,edges])
                 #Check if edge would connect something which is already connected
@@ -208,7 +208,8 @@ def brushfire_from(start_city, depth, player, allow_loop_back, routes):
                     return burning_cities;
             if not expanded and burn_city[1]>0:
                 leaves.append(burn_city)
-                print 'adding a leaf %s'% burn_city
+                #print 'adding a leaf %s'% burn_city
+
     return leaves
 
 
@@ -240,50 +241,69 @@ Get the maximum depth of routes from a city
 
 def depth_of_path_from(player, city, player_cities, routes):
     return_on_fork = False
-    depth = 10
-    city_depths = brushfire_from(city, depth, player, return_on_fork, routes)
-    print ' These are the city depths we have for city: %s ' % city
-    print city_depths
+    city_depths = brushfire_from(city, player, return_on_fork, routes)
+    #print ' These are the city depths we have for city: %s ' % city
+    #print city_depths
+    
+    max_car_length = 0
     edge_depth = 0
-    car_length = 0
+    edges = []
+    
     for city_depth in city_depths:
-        if edge_depth < city_depth[1]:
+        car_length = 0
+        for edge in city_depth[2]:
+            car_length = car_length + edge.cost
+        if car_length > max_car_length:
+            #print edge
+            max_car_length = car_length
             edge_depth = city_depth[1]
-            car_length  =0
-            for edge in city_depth[2]:
-                print edge
-                car_length = car_length + edge.cost
+            edges = city_depth[2]
             
-    return {'edge_depth':edge_depth,'car_length':car_length}
+    return {'edge_depth':edge_depth,'car_length':max_car_length,'edges':edges}
+
+
+"""
+Is a city in a list of edges
+"""
+def city_in_edges(city,edges):
+    for edge in edges:
+        if city is edge.city1:
+            return True
+        if city is edge.city2:
+            return True
+    return False
+            
 
 
 """
 Get edges of that are easily threatened for a specific player near city
 """
-
-
 def threatened_edge_near(start_city, player_cities, player, min_num_cars, routes):
-    print 'Looking for threathened_edge_near %s' %start_city
+    #print 'Looking for threathened_edge_near %s' %start_city
     harmful_edges = list()
     for city_edge in get_adjacent_cities(start_city, routes, 'unclaimed'):
         #print 'Threatened edges looking at:'
         #print city_edge
 
         if (city_edge[0] in player_cities):
-            city1_extent = depth_of_path_from(player, city_edge[1].city1, player_cities, routes)
-            #print 'depth from %s is %f'% city1_extent['car_length'],city_edge[1].city1
-            city2_extent = depth_of_path_from(player, city_edge[1].city2, player_cities, routes)
-            #print 'depth from %s is %f'% city2_extent['car_length'],city_edge[1].city2
+            city1 = city_edge[1].city1
+            city2 = city_edge[1].city2
+            city1_extent = depth_of_path_from(player,city1 , player_cities, routes)
+            city2_extent = depth_of_path_from(player,city2, player_cities, routes)
             cost = city1_extent['car_length'] + city2_extent['car_length']
             # city_edge[1].cost = cost;
             if cost > min_num_cars:
-                print 'cost: %f'% cost
-                harmful_edges.append([city_edge[1],cost])
-
+                #make sure we are not connecting something already connected
+                #print' edges ___'
+                #print city2_extent['edges']
+                if not city_in_edges(city1,city2_extent['edges']):
+                    #print 'cost: %f'% cost
+                    harmful_edges.append([city_edge[1],cost])
+            
     # print 'player cities'
     # print player_cities
-    print 'harmful edges:'
-    print harmful_edges
+    #print 'harmful edges:'
+    #print harmful_edges
     return harmful_edges
 
 
@@ -314,9 +334,13 @@ def get_threatened_edges(player, routes,min_num_cars = 1):
     for city in player_cities:
         # search for beginings of other paths at depth
         for edge_group in threatened_edge_near(city, player_cities, player,min_num_cars, routes):
-            threatened_edges.append(edge_group)
+            if edge_group not in threatened_edges:
+                threatened_edges.append(edge_group)
             
-    print 'these are the threatened edges of player %s' % player
-    print threatened_edges
+    #print 'these are the threatened edges of player %s' % player
+    #print threatened_edges
+    #print 'try again'
+    #print list(set(threatened_edges))
+
 
     return threatened_edges
