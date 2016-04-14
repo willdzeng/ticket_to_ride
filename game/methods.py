@@ -300,13 +300,14 @@ def threatened_edge_near(start_city, player_cities, player, min_num_cars, routes
                     #print 'cost: %f'% cost
                     harmful_edges.append([city_edge[1],cost])
             
-    # print 'player cities'
-    # print player_cities
-    #print 'harmful edges:'
-    #print harmful_edges
     return harmful_edges
 
-
+"""
+get list of cities that have are connect by any edge of a player
+:param player:  The player who has an edge on a city
+:param routes: The list of claimed routes
+:return: a list of cities
+"""
 def get_player_cities(player, routes):
     player_cities = list()
     for route in routes:
@@ -336,11 +337,5 @@ def get_threatened_edges(player, routes,min_num_cars = 1):
         for edge_group in threatened_edge_near(city, player_cities, player,min_num_cars, routes):
             if edge_group not in threatened_edges:
                 threatened_edges.append(edge_group)
-            
-    #print 'these are the threatened edges of player %s' % player
-    #print threatened_edges
-    #print 'try again'
-    #print list(set(threatened_edges))
-
 
     return threatened_edges
