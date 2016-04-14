@@ -107,9 +107,9 @@ class CFBaseAI(Player):
                 print self.name, " has a bug: path can't finish the destination"
                 print "#####################################################"
                 print "path is ", self.path
-                print "destination card is :"
-                for dest in info.destinations:
-                    print dest
+                print "destination card is :[",[dest for dest in info.destinations]
+                # for dest in info.destinations:
+                #     print dest
                 print "player edge_claim is :", game.get_edges_for_player(self)
                 print ""
                 # assert 0
