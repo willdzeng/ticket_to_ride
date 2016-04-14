@@ -123,3 +123,6 @@ fabric.properties
 
 # Backup files
 *.~
+
+# Log files
+*.csv
