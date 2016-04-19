@@ -253,6 +253,18 @@ class Game:
 
         return result
 
+    def get_opponents_name(self,player):
+        """
+        get player's name
+        :param player:
+        :return:
+        """
+        result = []
+        for tmp_player in self._players:
+            if tmp_player.name != player.name:
+                result.append(tmp_player.name)
+        return result
+
     def cards_in_deck(self):
         """
         Determine how many cards are left in the deck.

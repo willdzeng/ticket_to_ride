@@ -5,6 +5,7 @@ from ai.random_ai import RandomAI
 from ai.cf_ai.cf_random_ai import CFRandomAI
 from ai.cf_ai.cf_base_ai import CFBaseAI
 from ai.cf_ai.cf_action_eval_ai import CFActionEvalAI
+from ai.cf_ai.cf_combined_ai import CFCombinedAI
 from drivers.driver import Driver
 from drivers.log_driver import LogDriver
 from game import Game
@@ -23,7 +24,8 @@ p2 = CFBaseAI("CF Base AI")
 # p2 = GreedyAI("P2")
 p3 = AdversarialAI("Adversarial AI")
 p4 = CFActionEvalAI("CFAE")
-players = [p2, p3]
+p5 = CFCombinedAI("CF Combined")
+players = [p4, p5]
 
 # To have multiple tests run at once, create multiple log drivers with different combinations of players, then run each
 # one.
