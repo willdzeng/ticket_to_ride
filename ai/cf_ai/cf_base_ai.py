@@ -194,6 +194,7 @@ class CFBaseAI(Player):
         #         sleep(2)
         #         game.gui.update(game)
         if self.gui is not None:
+            print "%s has hand"%self.name,self.info.hand
             self.gui.show_destinations(self.info.destinations)
             self.gui.show_path(path)
             raw_input("Continue?")
