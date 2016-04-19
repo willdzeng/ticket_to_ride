@@ -11,6 +11,9 @@ class Player:
     def __str__(self):
         return self.name
 
+    def initialize_game(self,game):
+        pass
+
     def take_turn(self, game):
         pass
 

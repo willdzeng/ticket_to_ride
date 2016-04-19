@@ -60,7 +60,7 @@ class Game:
             # Give each player 3 destinations.
             possible_destinations = [self._destinations.pop(), self._destinations.pop(),
                                      self._destinations.pop()]
-
+            player.initialize_game(self)
             if self.print_debug:
                 print player, "is selecting initial tickets"
 

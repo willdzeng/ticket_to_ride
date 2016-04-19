@@ -14,7 +14,7 @@ from human_player.console_player import ConsolePlayer
 
 
 # for i in range(6):
-p1 = CFRandomAI("CF Random AI")
+# p1 = CFRandomAI("CF Random AI")
 # p1 = RandomAI("R1")
 # p1 = ConsolePlayer("Human")
 # p2 = Player("P2")
@@ -22,10 +22,10 @@ p1 = CFRandomAI("CF Random AI")
 p2 = CFBaseAI("CF Base AI")
 # p2 = RandomAI("R2")
 # p2 = GreedyAI("P2")
-p3 = AdversarialAI("Adversarial AI")
-p4 = CFActionEvalAI("CFAE")
+# p3 = AdversarialAI("Adversarial AI")
+# p4 = RandomAI("random AI")
 p5 = CFCombinedAI("CF Combined")
-players = [p4, p5]
+players = [p2, p5]
 
 # To have multiple tests run at once, create multiple log drivers with different combinations of players, then run each
 # one.

@@ -7,7 +7,8 @@ from game.classes import Colors
 from game.methods import find_paths_for_destinations, connected
 import copy
 from collections import namedtuple, Counter
-
+from gui.gui import GUI
+from time import sleep
 
 class CFBaseAI(Player):
     """
@@ -30,7 +31,7 @@ class CFBaseAI(Player):
     Wild_Card_Value = 8  # used when selecting the best cards to evaluate how much a wild card values
     Ticket_Score_Multiplier = 0.5  # used when selecting ticket
     Draw_Ticket_Threshold = 15  # the threshold of number of cars to draw ticket cards
-
+    gui_debug = False
     def __init__(self, name):
         Player.__init__(self, name)
         self.city_edges, self.edges = board.create_board()
@@ -44,6 +45,13 @@ class CFBaseAI(Player):
         self.cards_needed = Counter()
         self.remaining_edge = []
         self.path_clear = False
+        self.gui = None
+        self.opponent_name = []
+
+    def initialize_game(self,game):
+        if self.gui_debug:
+            self.gui = GUI()
+        self.opponent_name = game.get_opponents_name(self)
 
     def take_turn(self, game):
         """
@@ -98,6 +106,8 @@ class CFBaseAI(Player):
         if info.destinations:
             if self.path is None or not self.path_clear:
                 self.path, self.all_paths = self.find_best_path(game, info.destinations)
+                if self.gui_debug:
+                    self.show_path(game, self.path)
         else:  # else we don't have path
             self.path = None
 
@@ -176,6 +186,18 @@ class CFBaseAI(Player):
             path = all_paths[0]
 
         return path, all_paths
+
+    def show_path(self,game,path):
+        # if game.gui:
+        #         game.gui.show_destinations(self.info.destinations)
+        #         game.gui.show_path(path)
+        #         sleep(2)
+        #         game.gui.update(game)
+        if self.gui is not None:
+            self.gui.show_destinations(self.info.destinations)
+            self.gui.show_path(path)
+            raw_input("Continue?")
+            self.gui.update(game)
 
     def check_path(self, game, path):
         """

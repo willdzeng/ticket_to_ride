@@ -14,10 +14,9 @@ class CFCombinedAI(CFBaseAI):
     Destination_Threshold = 15
     Wild_Card_Value = 2
     Wild_Card_Cost = 7
-
+    gui_debug = True
     def __init__(self, name):
         CFBaseAI.__init__(self, name)
-        self.opponent_name =[]
 
     def make_decision(self,game):
         """
@@ -37,11 +36,14 @@ class CFCombinedAI(CFBaseAI):
 
         action = self.available_actions[values.index(max(values))]
         self.action_history.append(action)
+
         if not self.opponent_name:
             self.opponent_name = game.get_opponents_name(self)
+
         threatened_edges = get_threatened_edges(self.opponent_name[0],self.edge_claims,15)
         for edge in threatened_edges:
             print edge
+
         return action
 
     def eval_action(self, action):
