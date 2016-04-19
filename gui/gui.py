@@ -141,6 +141,12 @@ class GUI:
         plt.setp(self.city_points[city],'ms',20.0)
         plt.setp(self.city_texts[city], text=str(number))
 
+    def reset_cities(self):
+        for city in self.city_points:
+            plt.setp( self.city_points[city] ,'color','r')
+            plt.setp(self.city_points[city], marker = 'o')
+            plt.setp(self.city_points[city],'ms',1.0)
+            plt.setp(self.city_texts[city], text=str(''))
 
     #Display the destinations
     def show_destinations(self,destinations):
@@ -233,6 +239,7 @@ class GUI:
 
     def update(self, game):
         if self.needs_reset:
+            self.reset_cities()
             self.reset_edge_labels(game.get_edge_claims())
             self.needs_reset = False
         # TODO: Implement.
@@ -311,11 +318,44 @@ class GUI:
         #path = Path(edges,scoring)
         #self.show_path(path)
 
+    def close(self):
+        plt.clf()
+        plt.close()
+
+        colors = []
+        cities = dict()
+        x = []
+        y = []
+        player_1_cards = dict()
+        player_2_cards = dict()
+        edge_weights = dict()
+        edge_colors = dict()
+        cards = dict()
+        table_card_slots = list()
+        p1_score=[]
+        p2_score=[]
+        p1_cars=[]
+        p2_cars=[]
+        fig = []
+        edge_icons = dict()
+        edge_numbers = dict()
+        edge_means = dict()
+        need_reset =False
+        city_points = dict()
+        city_texts = dict()
+        destination_cities = dict()
 
     def update_game_ended(self, game):
         self.update(game)
         plt.ioff()
-        plt.show()
+        plt.draw()
+        # TODO: Implement.
+        pass
+
+    def update_game_ended_and_close(self, game):
+        self.update(game)
+        plt.ioff()
+        plt.draw()
         # TODO: Implement.
         pass
 
