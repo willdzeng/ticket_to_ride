@@ -14,11 +14,15 @@ class CFCombinedAI(CFBaseAI):
     Destination_Threshold = 15
     Wild_Card_Value = 2
     Wild_Card_Cost = 7
-    gui_debug = True
+    gui_debug = False
+    Threat_Edge_Threshold = 15
     def __init__(self, name):
         CFBaseAI.__init__(self, name)
-        self.threatened_edge = None
-        self.threatened_edge_score = 0
+
+        self.remaining_edge_score = 0
+        self.threatened_edges = []
+        self.threatened_edges_score = []
+
 
     def make_decision(self,game):
         """
@@ -26,6 +30,15 @@ class CFCombinedAI(CFBaseAI):
         :param game:
         :return:
         """
+        # if not self.opponent_name:
+        #     self.opponent_name = game.get_opponents_name(self)
+
+        self.remaining_edge_score = 0
+        for edge in self.remaining_edge:
+            self.remaining_edge_score += edge.cost
+
+        self.eval_threatened_edges()
+
          # decision making part
 
         if not self.opponent_name:
@@ -36,20 +49,6 @@ class CFCombinedAI(CFBaseAI):
         for edge in self.remaining_edge:
             self.remaining_edge_score += board.get_scoring()[edge.cost]
 
-        ####
-        # threatened_edges_group = get_threatened_edges(self.opponent_name[0],self.edge_claims,15)
-        # self.threatened_edge_score = 0
-        # self.threatened_edge = None
-        # if threatened_edges_group:
-        #     print threatened_edges_group
-        #     print len(threatened_edges_group)
-        #     self.threatened_edge = threatened_edges_group[0][0]
-        #     for group in threatened_edges_group[1]:
-        #         for edge in group:
-        #             print edge
-        #             self.threatened_edge_score += edge.cost
-        #     self.threatened_edge_score *= self.Threat_Edge_Multiplier
-        ####
 
         # calculate the value of each action
         values = []
@@ -64,9 +63,53 @@ class CFCombinedAI(CFBaseAI):
         action = self.available_actions[values.index(max(values))]
         self.action_history.append(action)
 
-
-
         return action
+
+    def eval_threatened_edges(self):
+        """
+        get and evaluate threatened edges
+        :return:
+        """
+        threatened_edges = get_threatened_edges(self.opponent_name[0], self.edge_claims, self.Threat_Edge_Threshold)
+        self.threatened_edges = []
+        if threatened_edges:
+            print 'Threatened edges has lens ',len(threatened_edges)
+
+
+        # first added the result into self
+        for tmp_edge_group in threatened_edges:
+            print tmp_edge_group
+            t_edge = tmp_edge_group[0]
+            self.threatened_edges.append(t_edge)
+
+        # then find out the double edges in the group
+        t_edge_length = len(self.threatened_edges)
+        double_edge = []
+        for i in range(0,t_edge_length - 1):
+            for j in range(i + 1,t_edge_length):
+                edge1 = self.threatened_edges[i]
+                edge2 = self.threatened_edges[j]
+                if (edge1.city1 == edge2.city1 and edge1.city2 == edge2.city2) \
+                    or (edge1.city1 == edge2.city2 and edge1.city2 == edge1.city1):
+                    double_edge.append(i)
+                    double_edge.append(j)
+
+        # remove the double edges
+        new_edge =  [v for i, v in enumerate(self.threatened_edges) if i not in double_edge]
+        self.threatened_edges = new_edge
+        if double_edge:
+            print "After remove it has "
+            for t_edge in self.threatened_edges:
+                print t_edge
+
+        # TODO: score the threatened edges
+        # for tmp_edge_group in threatened_edges:
+        #     left_edge_group = tmp_edge_group[1]
+        #     right_edge_group = tmp_edge_group[2]
+        #     score = 0
+        #     for edge_group in [left_edge_group,right_edge_group]:
+        #         for edge in edge_group:
+        #             score += edge.cost
 
     def eval_action(self, action):
         """
@@ -81,9 +124,13 @@ class CFCombinedAI(CFBaseAI):
             # value += board.get_scoring()[action.edge.cost]
             # if we have path, we double reward the action
 
-            if self.threatened_edge is not None:
-                if action.edge == self.threatened_edge:
-                    value += self.threatened_edge_score
+
+            if self.threatened_edges:
+                ## TODO: need to change the value of the threaten edge
+                pass
+                # if action.edge == self.threatened_edge:
+                #     value += self.threatened_edge_score
+
 
             if self.path is not None:
                 if action.edge in self.remaining_edge:

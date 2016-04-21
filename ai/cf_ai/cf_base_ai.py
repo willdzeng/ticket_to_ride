@@ -187,11 +187,11 @@ class CFBaseAI(Player):
 
     def show_path(self,game,path):
         if self.gui is not None:
+            self.gui.update(game)
             print "%s has hand"%self.name,self.info.hand
             self.gui.show_destinations(self.info.destinations)
             self.gui.show_path(path)
             raw_input("Continue?")
-            self.gui.update(game)
 
     def check_path(self, game, path):
         """

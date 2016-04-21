@@ -30,7 +30,8 @@ players = [p2, p5]
 # To have multiple tests run at once, create multiple log drivers with different combinations of players, then run each
 # one.
 
-driver = LogDriver(use_gui=False, players=players, print_debug=False, iterations=20, switch_order=True,
+
+driver = LogDriver(use_gui=False, players=players, print_debug=False, iterations=1, switch_order=False,
                    replay_deck=True, replay_destinations=True)
 
 # driver = Driver(use_gui=False, players=players, print_debug=False)
