@@ -76,6 +76,8 @@ class Driver:
                     break
 
         self.game_over(game)
+        if self.use_gui:
+            self.game_gui.close()
 
     def game_over(self, game):
         # Game's over.  Tell the players and print out some results.

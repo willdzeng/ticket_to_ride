@@ -322,28 +322,28 @@ class GUI:
         plt.clf()
         plt.close()
 
-        colors = []
-        cities = dict()
-        x = []
-        y = []
-        player_1_cards = dict()
-        player_2_cards = dict()
-        edge_weights = dict()
-        edge_colors = dict()
-        cards = dict()
-        table_card_slots = list()
-        p1_score=[]
-        p2_score=[]
-        p1_cars=[]
-        p2_cars=[]
-        fig = []
-        edge_icons = dict()
-        edge_numbers = dict()
-        edge_means = dict()
-        need_reset =False
-        city_points = dict()
-        city_texts = dict()
-        destination_cities = dict()
+        # colors = []
+        # cities = dict()
+        # x = []
+        # y = []
+        # player_1_cards = dict()
+        # player_2_cards = dict()
+        # edge_weights = dict()
+        # edge_colors = dict()
+        # cards = dict()
+        # table_card_slots = list()
+        # p1_score=[]
+        # p2_score=[]
+        # p1_cars=[]
+        # p2_cars=[]
+        # fig = []
+        # edge_icons = dict()
+        # edge_numbers = dict()
+        # edge_means = dict()
+        # need_reset =False
+        # city_points = dict()
+        # city_texts = dict()
+        # destination_cities = dict()
 
     def update_game_ended(self, game):
         self.update(game)

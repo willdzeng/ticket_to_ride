@@ -24,7 +24,7 @@ class CFBaseAI(Player):
     and `on_already_drew`) can also
     be overridden, and correspond to the behavior under certain conditions when taking an edge is not possible.
     """
-    Edge_Color_Exp = 3
+    Edge_Color_Exp = 2
     Edge_Color_Multiplier = 8  # used when calculate how much a edge cost when it's color is not none
     Edge_Score_Multiplier = 0.1  # used to reward a edge based on it's score
     Wild_Card_Cost = 8  # used when claiming routes, how much this claiming action cost when it's using wild card
@@ -106,20 +106,18 @@ class CFBaseAI(Player):
         if info.destinations:
             if self.path is None or not self.path_clear:
                 self.path, self.all_paths = self.find_best_path(game, info.destinations)
-                if self.gui_debug:
-                    self.show_path(game, self.path)
         else:  # else we don't have path
             self.path = None
 
         if self.path is not None:
+            if self.gui_debug:
+                    self.show_path(game, self.path)
             if not self.check_path(game, self.path):
                 print "####################################################"
                 print self.name, " has a bug: path can't finish the destination"
                 print "#####################################################"
                 print "path is ", self.path
                 print "destination card is :[",[dest for dest in info.destinations]
-                # for dest in info.destinations:
-                #     print dest
                 print "player edge_claim is :", game.get_edges_for_player(self)
                 print ""
                 # assert 0
@@ -188,11 +186,6 @@ class CFBaseAI(Player):
         return path, all_paths
 
     def show_path(self,game,path):
-        # if game.gui:
-        #         game.gui.show_destinations(self.info.destinations)
-        #         game.gui.show_path(path)
-        #         sleep(2)
-        #         game.gui.update(game)
         if self.gui is not None:
             print "%s has hand"%self.name,self.info.hand
             self.gui.show_destinations(self.info.destinations)
@@ -222,7 +215,8 @@ class CFBaseAI(Player):
         return success
 
     def game_ended(self, game):
-        pass
+        if self.gui_debug:
+            self.gui.close()
 
     def eval_path(self, path, all_paths, edge_costs, game):
         """
@@ -255,13 +249,14 @@ class CFBaseAI(Player):
                 continue
             if card == Colors.none:
                 # if the routes has gray color, directly add the number as cost
+                # print "gray card needed %d"%num
                 cost += num
             else:
-                cost += num ^ self.Edge_Color_Exp
+                cost += (num ** self.Edge_Color_Exp)
 
         # cost -= useful_card_num
         # return - path.score
-        # print path,"has cost ",cost
+        # print "cards needed:",cards_needed," has cost ",cost
         return cost
 
     def eval_edge(self, edge, all_paths, game):

@@ -7,7 +7,7 @@ from classes import Path
 # Maximum number of iterations for finding paths.
 MAX_PATH_ITER = 1000
 
-MAX_NUM_PATH = 20
+MAX_NUM_PATH = 50
 
 
 def connected(city1, city2, city_edges, edge_claims, player):
