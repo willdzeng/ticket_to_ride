@@ -14,9 +14,13 @@ class CFCombinedAI(CFBaseAI):
     Destination_Threshold = 15
     Wild_Card_Value = 2
     Wild_Card_Cost = 7
-    gui_debug = True
+    gui_debug = False
+    Threat_Edge_Threshold = 15
     def __init__(self, name):
         CFBaseAI.__init__(self, name)
+        self.remaining_edge_score = 0
+        self.threatened_edges = []
+        self.threatened_edges_score = []
 
     def make_decision(self,game):
         """
@@ -24,6 +28,15 @@ class CFCombinedAI(CFBaseAI):
         :param game:
         :return:
         """
+        if not self.opponent_name:
+            self.opponent_name = game.get_opponents_name(self)
+
+        self.remaining_edge_score = 0
+        for edge in self.remaining_edge:
+            self.remaining_edge_score += edge.cost
+
+        self.eval_threatened_edges()
+
          # decision making part
         values = []
         for action in self.available_actions:
@@ -37,14 +50,52 @@ class CFCombinedAI(CFBaseAI):
         action = self.available_actions[values.index(max(values))]
         self.action_history.append(action)
 
-        if not self.opponent_name:
-            self.opponent_name = game.get_opponents_name(self)
-
-        threatened_edges = get_threatened_edges(self.opponent_name[0],self.edge_claims,15)
-        for edge in threatened_edges:
-            print edge
-
         return action
+
+    def eval_threatened_edges(self):
+        """
+        get and evaluate threatened edges
+        :return:
+        """
+        threatened_edges = get_threatened_edges(self.opponent_name[0], self.edge_claims, self.Threat_Edge_Threshold)
+        self.threatened_edges = []
+        if threatened_edges:
+            print 'Threatened edges has lens ',len(threatened_edges)
+
+        # first added the result into self
+        for tmp_edge_group in threatened_edges:
+            print tmp_edge_group
+            t_edge = tmp_edge_group[0]
+            self.threatened_edges.append(t_edge)
+
+        # then find out the double edges in the group
+        t_edge_length = len(self.threatened_edges)
+        double_edge = []
+        for i in range(0,t_edge_length - 1):
+            for j in range(i + 1,t_edge_length):
+                edge1 = self.threatened_edges[i]
+                edge2 = self.threatened_edges[j]
+                if (edge1.city1 == edge2.city1 and edge1.city2 == edge2.city2) \
+                    or (edge1.city1 == edge2.city2 and edge1.city2 == edge1.city1):
+                    double_edge.append(i)
+                    double_edge.append(j)
+
+        # remove the double edges
+        new_edge =  [v for i, v in enumerate(self.threatened_edges) if i not in double_edge]
+        self.threatened_edges = new_edge
+        if double_edge:
+            print "After remove it has "
+            for t_edge in self.threatened_edges:
+                print t_edge
+
+        # TODO: score the threatened edges
+        # for tmp_edge_group in threatened_edges:
+        #     left_edge_group = tmp_edge_group[1]
+        #     right_edge_group = tmp_edge_group[2]
+        #     score = 0
+        #     for edge_group in [left_edge_group,right_edge_group]:
+        #         for edge in edge_group:
+        #             score += edge.cost
 
     def eval_action(self, action):
         """
@@ -58,15 +109,12 @@ class CFCombinedAI(CFBaseAI):
             # add the score to the value first
             # value += board.get_scoring()[action.edge.cost]
             # if we have path, we double reward the action
-            remaining_edge_score = 0
-            for edge in self.remaining_edge:
-                remaining_edge_score += edge.cost
 
             if self.path is not None:
                 if action.edge in self.remaining_edge:
                     # intuition here is:
                     # when we just have a few edge remains, the action to claim those edge would be high
-                    value += board.get_scoring()[action.edge.cost] + self.path.cost - remaining_edge_score
+                    value += board.get_scoring()[action.edge.cost] + self.path.cost - self.remaining_edge_score
                     if self.print_debug:
                         print "Found a good action that in the remaining edges"
                         print "Before counting for the card cost it has value:", value
