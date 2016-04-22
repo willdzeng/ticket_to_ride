@@ -221,7 +221,7 @@ class Game:
 
         for player in self._players:
             player_info = self._player_info[player]
-            result[player.name] = len(player_info.num_cars)
+            result[player.name] = player_info.num_cars
 
         return result
 

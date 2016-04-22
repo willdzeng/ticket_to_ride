@@ -19,19 +19,20 @@ from human_player.console_player import ConsolePlayer
 # p1 = ConsolePlayer("Human")
 # p2 = Player("P2")
 
-p2 = CFBaseAI("CF Base AI")
+# p2 = CFBaseAI("CF Base AI")
 # p2 = RandomAI("R2")
 # p2 = GreedyAI("P2")
 # p3 = AdversarialAI("Adversarial AI")
 # p4 = RandomAI("random AI")
-p5 = CFCombinedAI("CF Combined")
-players = [p2, p5]
+p5 = CFActionEvalAI("CFAE")
+p6 = CFCombinedAI("CF Combined")
+players = [p5, p6]
 
 # To have multiple tests run at once, create multiple log drivers with different combinations of players, then run each
 # one.
 
 
-driver = LogDriver(use_gui=False, players=players, print_debug=False, iterations=1, switch_order=False,
+driver = LogDriver(use_gui=False, players=players, print_debug=False, iterations=20, switch_order=True,
                    replay_deck=True, replay_destinations=True)
 
 # driver = Driver(use_gui=False, players=players, print_debug=False)

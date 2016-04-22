@@ -47,6 +47,7 @@ class CFBaseAI(Player):
         self.path_clear = False
         self.gui = None
         self.opponent_name = []
+        self.player_cars_count = {}
 
     def initialize_game(self,game):
         if self.gui_debug:
@@ -65,6 +66,7 @@ class CFBaseAI(Player):
         self.available_actions = game.get_available_actions(self)
         self.face_up_cards = game.get_face_up_cards()
         self.action_remaining = game.get_remaining_actions(self)
+        self.player_cars_count = game.get_player_car_counts()
 
         if self.action_remaining > 1:
             self.update_path(game)

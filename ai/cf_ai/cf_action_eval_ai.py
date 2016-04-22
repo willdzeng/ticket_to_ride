@@ -14,9 +14,14 @@ class CFActionEvalAI(CFBaseAI):
     Destination_Threshold = 15
     Wild_Card_Value = 2
     Wild_Card_Cost = 7
+    Threat_Action_Weight = 0 # weight when combined with other cost
+    gui_debug = False
 
     def __init__(self, name):
         CFBaseAI.__init__(self, name)
+        self.remaining_edge_score = 0
+        self.threatened_edges = []
+        self.threatened_edges_score = []
 
     def make_decision(self,game):
         """
@@ -24,7 +29,19 @@ class CFActionEvalAI(CFBaseAI):
         :param game:
         :return:
         """
-         # decision making part
+        # update remaining edge score
+        self.remaining_edge_score = 0
+        for edge in self.remaining_edge:
+            self.remaining_edge_score += board.get_scoring()[edge.cost]
+
+        # evaluate the threaten edge first
+        self.eval_threatened_edges()
+
+        # decision making part
+        if not self.opponent_name:
+            self.opponent_name = game.get_opponents_name(self)
+
+        # calculate the value of each action
         values = []
         for action in self.available_actions:
             value = self.eval_action(action)
@@ -39,27 +56,35 @@ class CFActionEvalAI(CFBaseAI):
 
         return action
 
+    def eval_threatened_edges(self):
+        # this will be implemented in combined AI
+        pass
+
     def eval_action(self, action):
         """
         Evaluate action based on path and cost function
         :param action: the action to be evaluated
         :return: the value of the action
         """
-
         value = 0
         if action.is_connect():
             # add the score to the value first
             # value += board.get_scoring()[action.edge.cost]
-            # if we have path, we double reward the action
-            remaining_edge_score = 0
-            for edge in self.remaining_edge:
-                remaining_edge_score += edge.cost
 
+            # add the value of threatened edge
+            # in CFAE this won't have any effect
+            if self.threatened_edges:
+                for id, edge in enumerate(self.threatened_edges):
+                    if action.edge == edge:
+                        value += self.threatened_edges_score[id] * self.Threat_Action_Weight
+                        print 'threaten action has extra value :',value
+
+            # if we have path, we double reward the action
             if self.path is not None:
                 if action.edge in self.remaining_edge:
                     # intuition here is:
                     # when we just have a few edge remains, the action to claim those edge would be high
-                    value += board.get_scoring()[action.edge.cost] + self.path.cost - remaining_edge_score
+                    value += board.get_scoring()[action.edge.cost] + self.path.score - self.remaining_edge_score
                     if self.print_debug:
                         print "Found a good action that in the remaining edges"
                         print "Before counting for the card cost it has value:", value
@@ -102,8 +127,13 @@ class CFActionEvalAI(CFBaseAI):
             return value
 
     def game_ended(self, game):
+        """
+        end of the game, let's print some shit
+        :param game:
+        :return:
+        """
         if self.print_debug:
-            print "CFAE made decisions as below:"
+            print "%s made decisions as below:"%self.name
             for action in self.action_history:
                 print action
             print "########\nDi:To cancel the action print in cf_action_eval_ai.py line 25-26\n#########\n"
