@@ -15,7 +15,8 @@ class CFCombinedAI(CFActionEvalAI):
     T_Edge_Weight = 0.1 # constant related to edge cost when evaluating threaten edge
     T_Edge_Group_Length = 3 # constant related to the length of edge group when evaluating threaten edge
     Threat_Action_Weight = 0.03 # total weight when combined with other cost
-    Threat_Edge_Threshold = 20 # the threshold when evaluate if it's a threaten edge
+    Threat_Edge_Threshold = 15 # the threshold when evaluate if it's a threaten edge
+    T_Multi_Edge_Penalty = 20 # the penalty of having multiple threaten edge
     gui_debug = False
 
     def __init__(self, name):
@@ -53,13 +54,14 @@ class CFCombinedAI(CFActionEvalAI):
         self.threatened_edges_score = []
 
         # score the threatened edges
+        penalty =  (len(threatened_edges) - 1) * self.T_Multi_Edge_Penalty
         for tmp_edge_group in threatened_edges:
             if len(tmp_edge_group) is not 3:
                 print "##### A bug of getting threatened edge ######"
                 continue
             left_edge_group = tmp_edge_group[1]
             right_edge_group = tmp_edge_group[2]
-            score = 0
+            score = 0 - penalty
             # add score based on the player's remaining cars.
             score += self.T_Remaining_Cars * (45 - self.player_cars_count[self.opponent_name[0]])
             for edge_group in [left_edge_group,right_edge_group]:
@@ -68,6 +70,7 @@ class CFCombinedAI(CFActionEvalAI):
                     score += edge.cost * self.T_Edge_Weight
                 # add score based on the length of the edge group
                 score += len(edge_group) * self.T_Edge_Group_Length
+            # if we have multiple threaten edges, we shouldn't claim anythings
             self.threatened_edges_score.append(score)
-            if self.print_debug:
-                print tmp_edge_group,'has score ',score
+            # if self.print_debug:
+            #     print tmp_edge_group,'has score ',score

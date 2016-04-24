@@ -48,11 +48,13 @@ class CFBaseAI(Player):
         self.gui = None
         self.opponent_name = []
         self.player_cars_count = {}
+        self.possible_cards = []
 
     def initialize_game(self,game):
         if self.gui_debug:
             self.gui = GUI()
         self.opponent_name = game.get_opponents_name(self)
+        self.face_up_cards = game.get_face_up_cards()
 
     def take_turn(self, game):
         """
@@ -67,6 +69,13 @@ class CFBaseAI(Player):
         self.face_up_cards = game.get_face_up_cards()
         self.action_remaining = game.get_remaining_actions(self)
         self.player_cars_count = game.get_player_car_counts()
+
+        # possible cards include hand cards and face-up-cards
+        self.possible_cards = []
+        for card in self.info.hand.cards.elements():
+            self.possible_cards.append(card)
+        for card in self.face_up_cards:
+            self.possible_cards.append(card)
 
         if self.action_remaining > 1:
             self.update_path(game)
@@ -106,7 +115,12 @@ class CFBaseAI(Player):
         # Get the path to work with only if it either does not exist or one of the old path's routes has been taken.
         # if we have destination cards, plan a path based on them
         if info.destinations:
-            if self.path is None or not self.path_clear:
+            if self.path is not None:
+                if self.path_clear:
+                    self.re_eval_path(game)
+                else:
+                    self.path, self.all_paths = self.find_best_path(game, info.destinations)
+            else:
                 self.path, self.all_paths = self.find_best_path(game, info.destinations)
         else:  # else we don't have path
             self.path = None
@@ -115,14 +129,20 @@ class CFBaseAI(Player):
             if self.gui_debug:
                     self.show_path(game, self.path)
             if not self.check_path(game, self.path):
-                print "####################################################"
-                print self.name, " has a bug: path can't finish the destination"
-                print "#####################################################"
-                print "path is ", self.path
-                print "destination card is :[",[dest for dest in info.destinations]
-                print "player edge_claim is :", game.get_edges_for_player(self)
-                print ""
-                # assert 0
+                self.all_paths.remove(self.path)
+                for path in self.all_paths:
+                    if self.check_path(game,path):
+                        self.path = path
+                        break
+                if not self.check_path(game, self.path):
+                    print "####################################################"
+                    print self.name, " has a bug: path can't finish the destination"
+                    print "#####################################################"
+                    print "path is ", self.path
+                    print "destination card is :[",[dest for dest in info.destinations]
+                    print "player edge_claim is :", game.get_edges_for_player(self)
+                    print ""
+
 
     def make_decision(self, game):
         """
@@ -187,6 +207,17 @@ class CFBaseAI(Player):
 
         return path, all_paths
 
+    def re_eval_path(self,game):
+        path_costs = {}
+        # Get the costs for all paths.
+        for path in self.all_paths:
+            path_costs[path] = self.eval_path(path, self.all_paths, self.edge_costs, game)
+
+        self.all_paths.sort(key=lambda path: path_costs[path])
+
+        if self.all_paths:
+            self.path = self.all_paths[0]
+
     def show_path(self,game,path):
         if self.gui is not None:
             self.gui.update(game)
@@ -233,12 +264,9 @@ class CFBaseAI(Player):
         """
         cost = 0
         cards_needed = self.get_cards_needed(path)
-        # for edge in path.edges:
-        #     cost += self.eval_edge(edge, all_paths, game)
-
-        # subtract the cards in hand from cards needed
         useful_card_num = 0
-        for card in self.info.hand.cards.elements():
+
+        for card in self.possible_cards:
             # ignore the wild card in hand when evaluating cost
             if card == Colors.none:
                 continue

@@ -13,7 +13,7 @@ class CFActionEvalAI(CFBaseAI):
 
     Destination_Threshold = 15
     Wild_Card_Value = 2
-    Wild_Card_Cost = 7
+    Wild_Card_Cost = 9
     Threat_Action_Weight = 0 # weight when combined with other cost
     gui_debug = False
 
@@ -46,8 +46,8 @@ class CFActionEvalAI(CFBaseAI):
         for action in self.available_actions:
             value = self.eval_action(action)
             values.append(value)
-            if self.print_debug:
-                print action, "has value", value
+            # if self.print_debug:
+            #     print action, "has value", value
         if self.print_debug:
             self.print_cards_needed()
 
@@ -77,17 +77,20 @@ class CFActionEvalAI(CFBaseAI):
                 for id, edge in enumerate(self.threatened_edges):
                     if action.edge == edge:
                         value += self.threatened_edges_score[id] * self.Threat_Action_Weight
-                        print 'threaten action has extra value :',value
+                        if self.print_debug:
+                            print action
+                            print '#### Threaten Action #####:',value
 
             # if we have path, we double reward the action
             if self.path is not None:
                 if action.edge in self.remaining_edge:
                     # intuition here is:
                     # when we just have a few edge remains, the action to claim those edge would be high
-                    value += board.get_scoring()[action.edge.cost] + self.path.score - self.remaining_edge_score
+                    value += self.Wild_Card_Value + board.get_scoring()[action.edge.cost] \
+                             + self.path.score - self.remaining_edge_score
                     if self.print_debug:
-                        print "Found a good action that in the remaining edges"
-                        print "Before counting for the card cost it has value:", value
+                        print "Path action ",action
+                        print "Before: ", value
                 else:  # edge is not in path
                     # intuition here is if the we have path, and we may still claim it
                     # if it has higher score than the remaining destination
@@ -100,12 +103,15 @@ class CFActionEvalAI(CFBaseAI):
                     if card == Colors.none:
                         value -= self.Wild_Card_Cost
                     else:
-                        # if edge is gray
+                        # if edge is gray, make sure it doesn't take the cards we need for other edge
                         if action.edge.color == Colors.none:
                             value -= self.cards_needed[card]
             else:  # if path is None
                 # when we don't have path, we better claim the best path that has the highest score
                 value += board.get_scoring()[action.edge.cost]
+            if action.edge in self.remaining_edge:
+                if self.print_debug:
+                    print "After: ",value
             return value
 
         if action.is_draw_destination():
@@ -124,6 +130,8 @@ class CFActionEvalAI(CFBaseAI):
                 value += self.Wild_Card_Value
             else:
                 value += self.cards_needed[action.card]
+            if self.print_debug:
+                print action," has value ",value
             return value
 
     def game_ended(self, game):

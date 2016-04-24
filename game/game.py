@@ -40,8 +40,17 @@ class Game:
         self._double_edges = dict()
         self._players = players
 
+        # Select 5 face up cards.
+        # noinspection PyUnusedLocal
+        self._face_up_cards = [self._deck.pop() for x in range(5)]
+
         # Initialize edge claims
         self._edge_claims = {edge: None for edge in self._edges}
+        if len(players) < 4:  # tracking double edges in 2 and 3 player games
+            self._track_double_edges()
+
+        # Visible scores are set to zero.
+        self._visible_scores = {player.name: 0 for player in self._players}
 
         # Initialize info for all players.
         self._player_info = {}
@@ -87,23 +96,11 @@ class Game:
             # set the player's calculated score
             player_info.score = score
 
-        # Visible scores are set to zero.
-        self._visible_scores = {player.name: 0 for player in self._players}
-
         # Set the first player to have the first turn.
         self._current_player_index = 0
 
-        # Select 5 face up cards.
-        # noinspection PyUnusedLocal
-        self._face_up_cards = [self._deck.pop() for x in range(5)]
-
         # The number of actions the player has left to take this turn.
         self._num_actions_remaining = 2
-
-        # Initialize edge claims
-        self._edge_claims = {edge: None for edge in self._edges}
-        if len(players) < 4:  # tracking double edges in 2 and 3 player games
-            self._track_double_edges()
 
         self._game_is_over = False
 
