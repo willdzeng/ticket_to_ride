@@ -32,7 +32,7 @@ players = [p5, p6]
 # one.
 
 
-driver = LogDriver(use_gui=False, players=players, print_debug=False, iterations=50, switch_order=True,
+driver = LogDriver(use_gui=False, players=players, print_debug=True, iterations=1, switch_order=True,
                    replay_deck=True, replay_destinations=True)
 
 # driver = Driver(use_gui=False, players=players, print_debug=False)

@@ -129,7 +129,8 @@ class CFBaseAI(Player):
             if self.gui_debug:
                     self.show_path(game, self.path)
             if not self.check_path(game, self.path):
-                self.all_paths.remove(self.path)
+                if self.path in self.all_paths:
+                    self.all_paths.remove(self.path)
                 for path in self.all_paths:
                     if self.check_path(game,path):
                         self.path = path
