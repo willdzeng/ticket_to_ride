@@ -135,6 +135,9 @@ class GUI:
     city_texts = dict()
     destination_cities = dict()
 
+    player_1=None
+    player_2=None
+
     def set_city(self,city,number):
         plt.setp( self.city_points[city] ,'color','w')
         plt.setp(self.city_points[city], marker = 'H')
@@ -238,6 +241,10 @@ class GUI:
             self.y.append(self.cities[city][1])
 
     def update(self, game):
+        self.player_1 = str(game._players[0])
+        self.player_2 = str(game._players[1])
+        
+        
         if self.needs_reset:
             self.reset_cities()
             self.reset_edge_labels(game.get_edge_claims())
@@ -267,11 +274,11 @@ class GUI:
         for player in game._players:
             cards = game.get_player_info(player).hand.cards
             for card in cards:
-                if(player.name == 'P1'):
+                if(player.name == self.player_1):
                     self.player_1_cards[str(card)].set_text(str(cards[card]))
                     self.p1_score.set_text(str(scores[player.name]))
                     self.p1_cars.set_text(str(game.get_player_info(player).num_cars))
-                elif(player.name == 'P2'):
+                elif(player.name == self.player_2):
                     self.player_2_cards[str(card)].set_text(str(cards[card]))
                     self.p2_score.set_text(str(scores[player.name]))
                     self.p2_cars.set_text(str(game.get_player_info(player).num_cars))
@@ -292,14 +299,14 @@ class GUI:
 
             #scoring[edge.cost] = 0
 
-            if(edges[edge] == 'P1'):
+            if(edges[edge] == self.player_1):
                 plt.setp(self.edge_weights[edge],'color','b')
                 plt.setp(self.edge_colors[edge],'color','b')
                 plt.setp(self.edge_colors[edge], marker='.')
                 plt.setp(self.edge_colors[edge], linewidth=6)
                 plt.setp(self.edge_colors[edge], linestyle='--')
                 plt.setp(self.edge_colors[edge],'ms',10.0)
-            elif(edges[edge] == 'P2'):
+            elif(edges[edge] == self.player_2):
                 plt.setp(self.edge_weights[edge],'color','r')
                 plt.setp(self.edge_colors[edge],'color','r')
                 plt.setp(self.edge_colors[edge], marker='.')
