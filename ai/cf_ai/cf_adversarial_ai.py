@@ -22,8 +22,8 @@ class AdversarialAI(CFActionEvalAI):
 
         # If there are edges to steal, then adversarial AI will attempt to take them, otherwise it will execute normally
         if (steal_edges) and self.action_remaining == 2:
-            #print 'Taking adversarial Action!!!!!!!!'
-            #print 'Want to take edges:'
+            # print 'Taking adversarial Action!!!!!!!!'
+            # print 'Want to take edges:'
             # print steal_edges
             for steal_edge in steal_edges:
                 if self.print_debug:
@@ -32,14 +32,14 @@ class AdversarialAI(CFActionEvalAI):
                 if possible_action:
                     actions.append(possible_action[0])
                     if self.print_debug:
-                        print 'found a possible action',str(possible_action)
-                #print actions
+                        print 'found a possible action', str(possible_action)
+                        # print actions
             # No actions, then do normal actions
             if not actions:
-                #print 'Do not have required cards'
+                # print 'Do not have required cards'
                 return original_action
             else:
-                #print 'returning action'
+                # print 'returning action'
                 return actions[randrange(0, len(actions))]
         else:
             return original_action

@@ -10,6 +10,7 @@ from collections import namedtuple, Counter
 from gui.gui import GUI
 from time import sleep
 
+
 class CFBaseAI(Player):
     """
     AI that plays by finding the ideal path to all destinations that is affordable and maximizes a predefined cost
@@ -32,6 +33,7 @@ class CFBaseAI(Player):
     Ticket_Score_Multiplier = 0.5  # used when selecting ticket
     Draw_Ticket_Threshold = 15  # the threshold of number of cars to draw ticket cards
     gui_debug = False
+
     def __init__(self, name):
         Player.__init__(self, name)
         self.city_edges, self.edges = board.create_board()
@@ -45,14 +47,15 @@ class CFBaseAI(Player):
         self.cards_needed = Counter()
         self.remaining_edge = []
         self.path_clear = False
-        self.gui = None
+        # self.gui = None
         self.opponent_name = []
         self.player_cars_count = {}
         self.possible_cards = []
+        self.bug_showed = False
 
-    def initialize_game(self,game):
-        if self.gui_debug:
-            self.gui = GUI()
+    def initialize_game(self, game):
+        # if self.gui_debug:
+        #     self.gui = GUI()
         self.opponent_name = game.get_opponents_name(self)
         self.face_up_cards = game.get_face_up_cards()
 
@@ -126,24 +129,29 @@ class CFBaseAI(Player):
             self.path = None
 
         if self.path is not None:
-            if self.gui_debug:
-                    self.show_path(game, self.path)
+            # if self.gui_debug:
+            #     self.show_path(game, self.path)
             if not self.check_path(game, self.path):
-                if self.path in self.all_paths:
-                    self.all_paths.remove(self.path)
-                for path in self.all_paths:
-                    if self.check_path(game,path):
-                        self.path = path
-                        break
-                if not self.check_path(game, self.path):
-                    print "####################################################"
-                    print self.name, " has a bug: path can't finish the destination"
-                    print "#####################################################"
-                    print "path is ", self.path
-                    print "destination card is :[",[dest for dest in info.destinations]
-                    print "player edge_claim is :", game.get_edges_for_player(self)
-                    print ""
-
+                # change the path to other solutions we have
+                # if self.path in self.all_paths:
+                #     self.all_paths.remove(self.path)
+                # for path in self.all_paths:
+                #     if self.check_path(game, path):
+                #         self.path = path
+                #         break
+                # if not self.check_path(game, self.path):
+                print "####################################################"
+                print self.name, " has a bug: path can't finish the destination"
+                print "#####################################################"
+                print "path is ", self.path
+                print "destination card is :[", [dest for dest in info.destinations]
+                print "player edge_claim is :", game.get_edges_for_player(self)
+                print self.info
+                print ""
+                if self.gui_debug:
+                    if not self.bug_showed:
+                        self.show_path(game, self.path)
+                        self.bug_showed = True
 
     def make_decision(self, game):
         """
@@ -208,7 +216,12 @@ class CFBaseAI(Player):
 
         return path, all_paths
 
-    def re_eval_path(self,game):
+    def re_eval_path(self, game):
+        """
+        re-evaluate the path of all_paths to accommodate the changes in the game
+        :param game:
+        :return:
+        """
         path_costs = {}
         # Get the costs for all paths.
         for path in self.all_paths:
@@ -219,13 +232,21 @@ class CFBaseAI(Player):
         if self.all_paths:
             self.path = self.all_paths[0]
 
-    def show_path(self,game,path):
-        if self.gui is not None:
-            self.gui.update(game)
-            print "%s has hand"%self.name,self.info.hand
-            self.gui.show_destinations(self.info.destinations)
-            self.gui.show_path(path)
+    def show_path(self, game, path):
+        gui = GUI()
+        if gui is not None:
+            gui.update(game)
+            # print "%s has hand" % self.name, self.info.hand
+            gui.show_destinations(self.info.destinations)
+            gui.show_path(path)
             raw_input("Continue?")
+        gui.close()
+        # if self.gui is not None:
+        #     self.gui.update(game)
+        #     print "%s has hand" % self.name, self.info.hand
+        #     self.gui.show_destinations(self.info.destinations)
+        #     self.gui.show_path(path)
+        #     raw_input("Continue?")
 
     def check_path(self, game, path):
         """
@@ -249,8 +270,9 @@ class CFBaseAI(Player):
         return success
 
     def game_ended(self, game):
-        if self.gui_debug:
-            self.gui.close()
+        pass
+        # if self.gui is not None:
+        #     self.gui.close()
 
     def eval_path(self, path, all_paths, edge_costs, game):
         """

@@ -14,7 +14,7 @@ class CFActionEvalAI(CFBaseAI):
     Destination_Threshold = 15
     Wild_Card_Value = 2
     Wild_Card_Cost = 9
-    Threat_Action_Weight = 0 # weight when combined with other cost
+    Threat_Action_Weight = 0  # weight when combined with other cost
     gui_debug = False
 
     def __init__(self, name):
@@ -23,7 +23,7 @@ class CFActionEvalAI(CFBaseAI):
         self.threatened_edges = []
         self.threatened_edges_score = []
 
-    def make_decision(self,game):
+    def make_decision(self, game):
         """
         Evaluate every available action and select the best
         :param game:
@@ -79,7 +79,7 @@ class CFActionEvalAI(CFBaseAI):
                         value += self.threatened_edges_score[id] * self.Threat_Action_Weight
                         if self.print_debug:
                             print action
-                            print '#### Threaten Action #####:',value
+                            print '#### Threaten Action #####:', value
 
             # if we have path, we double reward the action
             if self.path is not None:
@@ -89,7 +89,7 @@ class CFActionEvalAI(CFBaseAI):
                     value += self.Wild_Card_Value + board.get_scoring()[action.edge.cost] \
                              + self.path.score - self.remaining_edge_score
                     if self.print_debug:
-                        print "Path action ",action
+                        print "Path action ", action
                         print "Before: ", value
                 else:  # edge is not in path
                     # intuition here is if the we have path, and we may still claim it
@@ -109,9 +109,9 @@ class CFActionEvalAI(CFBaseAI):
             else:  # if path is None
                 # when we don't have path, we better claim the best path that has the highest score
                 value += board.get_scoring()[action.edge.cost]
-            if action.edge in self.remaining_edge:
+            if action.edge in self.remaining_edge or action.edge in self.threatened_edges:
                 if self.print_debug:
-                    print "After: ",value
+                    print "After: ", value
             return value
 
         if action.is_draw_destination():
@@ -131,7 +131,7 @@ class CFActionEvalAI(CFBaseAI):
             else:
                 value += self.cards_needed[action.card]
             if self.print_debug:
-                print action," has value ",value
+                print action, " has value ", value
             return value
 
     def game_ended(self, game):
@@ -141,7 +141,10 @@ class CFActionEvalAI(CFBaseAI):
         :return:
         """
         if self.print_debug:
-            print "%s made decisions as below:"%self.name
+            print "%s made decisions as below:" % self.name
             for action in self.action_history:
                 print action
             print "########\nDi:To cancel the action print in cf_action_eval_ai.py line 25-26\n#########\n"
+
+        # if self.gui is not None:
+        #     self.gui.close()
