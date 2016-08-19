@@ -1,5 +1,5 @@
-# Ticket To Ride
-A Game Engine and multiple AI for Game "Ticket To Ride"
+# Ticket To Ride Libary
+A Game Engine and multiple AIs for Game "Ticket To Ride"
 
 ## AI Introducation
 ### CFAE
@@ -34,9 +34,11 @@ use_gui = True
 And you are good to go!
 
 ## Main Contributor
-Steve Schwarcz \
-Jeffrey Twigg \
-Di Zeng \
+Steve Schwarcz 
+
+Jeffrey Twigg
+
+Di Zeng
 
 ## Be free to fork and change the code.
 ## If you have any questions, you can submit them in issue page.
