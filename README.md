@@ -8,7 +8,7 @@ Cost Function Action Evaluation AI (CFAE) uses a set of cost function to evaluat
 A cost function Base AI which have a set of rules and cost function to make decision in each round
 ### Adverisrial AI
 A AI that eavaluate the routes build by the oppoenets and select the best action to block the routes of the oppoenets
-## CFCombined AI
+### CFCombined AI
 A AI that comibe CFAE and Adversirial AI by using another high-level cost function
 ### Random
 A random AI that does random action each round
